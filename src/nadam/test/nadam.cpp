@@ -23,6 +23,13 @@ TEST(NadamMessageInfoTest, SizeIdentifiersAreAliases) {
 	ASSERT_EQ(42, mi.maxSize);
 }
 
-// TODO hash
+TEST(NadamMessageInfoTest, ConstructHash) {
+	MessageInfo mi{"foo", 0x5a, true};
+
+	uint8_t expectedInput[] = {'f', 'o', 'o', 1, 0x0, 0x0, 0x0, 0x5a};
+
+	util::sha1::Digest sha;
+	ASSERT_EQ(sha.digest(expectedInput, sizeof(expectedInput)), mi.hash);
+}
 
 } // namespace

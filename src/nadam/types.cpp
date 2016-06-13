@@ -12,8 +12,13 @@ MessageInfo::MessageInfo(std::string name, uint32_t size, bool isVariableSize)
 
 util::sha1::hash MessageInfo::constructHash(const std::string& name, uint32_t size, bool isVariableSize) {
 	util::sha1::Digest sha;
-	// FIXME
-	return sha.digest(nullptr, 0);
+	sha.put(name.data(), static_cast<uint32_t>(name.size()));
+	sha.put(isVariableSize);
+	for (size_t i = 0; i < sizeof(size); ++i) {
+		size_t byteNumber = sizeof(size) - 1 - i;
+		sha.put(size >> 8 * byteNumber & 0xff);
+	}
+	return sha.finish();
 }
 
 } // namespace nadam
