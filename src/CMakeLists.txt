@@ -1,6 +1,7 @@
 include(UtilFunctions)
 
 add_subdirectory(util)
+add_subdirectory(nadam)
 
 get_property(APP_SOURCES GLOBAL PROPERTY G_APP_SOURCES)
 
