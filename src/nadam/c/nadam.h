@@ -8,6 +8,8 @@ License:    opensource.org/licenses/MIT
 #include <cstdlib>
 #include <cstdint>
 
+#include <nadam/types.h>
+
 namespace nadam {
 namespace c {
 
@@ -17,14 +19,14 @@ typedef struct {
         uint32_t total;
         uint32_t max;
     };
-} nadam_messageSize_t;
+} messageSize_t;
 
 typedef struct {
     const char *name;
     size_t nameLength;
-    nadam_messageSize_t size;
+    messageSize_t size;
     uint8_t hash[20];
-} nadam_messageInfo_t;
+} messageInfo_t;
 
 // errors returned by interface functions
 #define NADAM_ERROR_UNKNOWN_NAME 300
@@ -44,16 +46,16 @@ typedef struct {
 #define NADAM_ERROR_UNKNOWN_HASH 501
 #define NADAM_ERROR_VARIABLE_SIZE 502
 
-typedef int (*nadam_send_t)(const void *src, uint32_t n);
-typedef int (*nadam_recv_t)(void *dest, uint32_t n);
-/* If a delegate was set with nadam_setDelegate()
+typedef int (*send_t)(const void *src, uint32_t n);
+typedef int (*recv_t)(void *dest, uint32_t n);
+/* If a delegate was set with setDelegate()
    memory pointed to by msg should be considered invalid after it returns.
    Size parmeter will provide the actual size of a variable size message.  */
-typedef void (*nadam_recvDelegate_t)(void *msg, uint32_t size, const nadam_messageInfo_t *messageInfo);
+typedef void (*recvDelegate_t)(void *msg, uint32_t size, const messageInfo_t *messageInfo);
 
 // if the error delegate gets called, no new messages will be received (the connection should be closed)
 // errno won't be overwritten (check error argument instead)
-typedef void (*nadam_errorDelegate_t)(int error);
+typedef void (*errorDelegate_t)(int error);
 
 /* Functions return 0 on success and -1 on error.
    If -1 is returned, errno will contain the specific value.  */
@@ -63,32 +65,32 @@ typedef void (*nadam_errorDelegate_t)(int error);
    That would be painful, therefore the follwing compromise was made:
    name's length is assumed to be the index of first '\0'.
    The limitation of this is that all names truncated at first '\0' have to be unique.
-   nadam_init() will test for it. Barring that, messageInfos argument is expected to be correct.
+   init() will test for it. Barring that, messageInfos argument is expected to be correct.
    Otherwise, the behaviour is undefined.
 
-   nameLength in nadam_messageInfo_t is endowed
+   nameLength in messageInfo_t is endowed
    by message info generator utility, but is ignored in this implementation.  */
 
 // messageInfos will be used continuously - it should be unlimited lifetime const
-int nadam_init(const nadam_messageInfo_t *messageInfos, size_t messageInfoCount, size_t hashLengthMin);
+int init(const messageInfo_t *messageInfos, size_t messageInfoCount, size_t hashLengthMin);
 
 /* If the delegate for a message type is not set, messages of this type are ignored (dumped).
    Passing NULL as second argument removes the delegate.
    The simplier interface version uses a shared "stock" buffer to receive messages.
    This buffer could be overwritten at any time after a delegate returns.  */
-int nadam_setDelegate(const char *name, nadam_recvDelegate_t delegate);
-int nadam_setDelegateWithRecvBuffer(const char *name, nadam_recvDelegate_t delegate,
+int setDelegate(const char *name, recvDelegate_t delegate);
+int setDelegateWithRecvBuffer(const char *name, recvDelegate_t delegate,
         void *buffer, volatile bool *recvStart);
 
-int nadam_initiate(nadam_send_t send, nadam_recv_t recv, nadam_errorDelegate_t errorDelegate);
+int initiate(send_t send, recv_t recv, errorDelegate_t errorDelegate);
 
-/* nadam_send() can only be used after a successful nadam_initiate() call.
+/* send() can only be used after a successful initiate() call.
    Size argument is ignored for constant size messages.  */
-int nadam_send(const char *name, const void *msg, uint32_t size);
-int nadam_sendUmi(const nadam_messageInfo_t *messageInfo, const void *msg, uint32_t size);
+int send(const char *name, const void *msg, uint32_t size);
+int sendUmi(const messageInfo_t *messageInfo, const void *msg, uint32_t size);
 
 // stops receiving - connection should be closed after this
-void nadam_stop(void);
+void stop(void);
 
 } // namespace c
 } // namespace nadam
