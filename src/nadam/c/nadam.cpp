@@ -36,7 +36,7 @@ struct nadamMembers_t {
     recvDelegateRelated_t *delegates;
     bool nullRecvStart;
 
-    const messageInfo_t *messageInfos;
+    const MessageInfo *messageInfos;
     size_t messageCount;
     size_t hashLength;
 
@@ -62,16 +62,16 @@ static void initMaps(void);
 static int fillNameMap(void);
 static void fillHashMap(void);
 static int getIndexForName(const char *name, size_t *index);
-static void nullDelegate(void *msg, uint32_t size, const messageInfo_t *messageInfo);
+static void nullDelegate(void *msg, uint32_t size, const MessageInfo *messageInfo);
 static int handshakeSendHashLength(void);
 static int handshakeHandleHashLengthRecv(void);
-static int sendFixedSize(const messageInfo_t *mi, const void *msg);
-static int sendVariableSize(const messageInfo_t *mi, const void *msg, uint32_t size);
+static int sendFixedSize(const MessageInfo *mi, const void *msg);
+static int sendVariableSize(const MessageInfo *mi, const void *msg, uint32_t size);
 // recv group -- errors are reported via error delegate
 static void *recvWorker(void *arg);
 static int getIndexForHash(const uint8_t *hash, size_t *index);
 static uint32_t truncateHash(const uint8_t *hash);
-static int getMessageSize(const messageInfo_t *mi, uint32_t *size);
+static int getMessageSize(const MessageInfo *mi, uint32_t *size);
 static void createRecvThread(void);
 static void cancelRecvThread(void);
 
@@ -79,7 +79,7 @@ static nadamMembers_t mbr;
 
 // interface functions
 // -----------------------------------------------------------------------------
-int init(const messageInfo_t *messageInfos, size_t messageCount, size_t hashLengthMin) {
+int init(const MessageInfo *messageInfos, size_t messageCount, size_t hashLengthMin) {
     if (testInitIn(messageCount, hashLengthMin))
         return -1;
 
@@ -155,17 +155,17 @@ int send(const char *name, const void *msg, uint32_t size) {
     if (getIndexForName(name, &index))
         return -1;
 
-    const messageInfo_t *mi = mbr.messageInfos + index;
-    bool isFixedSize = !mi->size.isVariable;
+    const MessageInfo *mi = mbr.messageInfos + index;
+    bool isFixedSize = !mi->isVariableSize;
     if(isFixedSize)
         return sendFixedSize(mi, msg);
     else
         return sendVariableSize(mi, msg, size);
 }
 
-int sendUmi(const messageInfo_t *mi, const void *msg, uint32_t size) {
+int sendUmi(const MessageInfo *mi, const void *msg, uint32_t size) {
 	assert(mi);
-    bool isFixedSize = !mi->size.isVariable;
+    bool isFixedSize = !mi->isVariableSize;
     if(isFixedSize)
         return sendFixedSize(mi, msg);
     else
@@ -223,7 +223,7 @@ static int allocate(void **dest, size_t size) {
 static uint32_t getMaxMessageSize(void) {
     uint32_t maxSize = 0;
     for (size_t i = 0; i < mbr.messageCount; ++i) {
-        uint32_t currentSize = mbr.messageInfos[i].size.total;
+        uint32_t currentSize = mbr.messageInfos[i].size;
         if (currentSize > maxSize)
             maxSize = currentSize;
     }
@@ -248,7 +248,7 @@ static void initMaps(void) {
 static int fillNameMap(void) {
     for (size_t i = 0; i < mbr.messageCount; ++i) {
         int ret;
-        khiter_t k = kh_put(mStr, mbr.nameKeyMap, mbr.messageInfos[i].name, &ret);
+        khiter_t k = kh_put(mStr, mbr.nameKeyMap, mbr.messageInfos[i].name.data(), &ret);
         assert(ret != -1);
 
         bool keyWasPresent = !ret;
@@ -265,7 +265,7 @@ static int fillNameMap(void) {
 static void fillHashMap(void) {
     for (size_t i = 0; i < mbr.messageCount; ++i) {
         int ret;
-        uint32_t hash = truncateHash(mbr.messageInfos[i].hash);
+        uint32_t hash = truncateHash(mbr.messageInfos[i].hash.data());
         khiter_t k = kh_put(m32, mbr.hashKeyMap, hash, &ret);
         assert(ret != -1);
 
@@ -286,7 +286,7 @@ static int getIndexForName(const char *name, size_t *index) {
     return 0;
 }
 
-static void nullDelegate(void*, uint32_t, const messageInfo_t*) { }
+static void nullDelegate(void*, uint32_t, const MessageInfo*) { }
 
 static int handshakeSendHashLength(void) {
     const uint8_t hashLength = (uint8_t) mbr.hashLength;
@@ -315,9 +315,9 @@ static int handshakeHandleHashLengthRecv(void) {
     return 0;
 }
 
-static int sendFixedSize(const messageInfo_t *mi, const void *msg) {
-    int errorCollector = mbr.send(mi->hash, (uint32_t) mbr.hashLength);
-    errorCollector |= mbr.send(msg, mi->size.total);
+static int sendFixedSize(const MessageInfo *mi, const void *msg) {
+    int errorCollector = mbr.send(mi->hash.data(), (uint32_t) mbr.hashLength);
+    errorCollector |= mbr.send(msg, mi->size);
 
     if (errorCollector) {
         errno = NADAM_ERROR_SEND;
@@ -326,12 +326,12 @@ static int sendFixedSize(const messageInfo_t *mi, const void *msg) {
     return 0;
 }
 
-static int sendVariableSize(const messageInfo_t *mi, const void *msg, uint32_t size) {
-    if (size > mi->size.max) {
+static int sendVariableSize(const MessageInfo *mi, const void *msg, uint32_t size) {
+    if (size > mi->maxSize) {
         errno = NADAM_ERROR_SIZE_ARG;
         return -1;
     }
-    int errorCollector = mbr.send(mi->hash, (uint32_t) mbr.hashLength);
+    int errorCollector = mbr.send(mi->hash.data(), (uint32_t) mbr.hashLength);
     errorCollector |= mbr.send(&size, 4);
     errorCollector |= mbr.send(msg, size);
 
@@ -358,7 +358,7 @@ static void *recvWorker(void*) {
             return NULL;
         }
 
-        const messageInfo_t *messageInfo = mbr.messageInfos + index;
+        const MessageInfo *messageInfo = mbr.messageInfos + index;
         uint32_t size;
         error = getMessageSize(messageInfo, &size);
         if (error) {
@@ -395,17 +395,16 @@ static uint32_t truncateHash(const uint8_t *hash) {
     return res;
 }
 
-static int getMessageSize(const messageInfo_t *mi, uint32_t *size) {
-    messageSize_t ms = mi->size;
+static int getMessageSize(const MessageInfo *mi, uint32_t *size) {
     uint32_t s;
-    if (ms.isVariable) {
+    if (mi->isVariableSize) {
         if (mbr.recv(&s, 4))
             return NADAM_ERROR_RECV;
 
-        if (s > ms.max)
+        if (s > mi->maxSize)
             return NADAM_ERROR_VARIABLE_SIZE;
     } else {
-        s = ms.total;
+        s = mi->size;
     }
 
     *size = s;

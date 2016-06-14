@@ -13,20 +13,7 @@ License:    opensource.org/licenses/MIT
 namespace nadam {
 namespace c {
 
-typedef struct {
-    bool isVariable;
-    union {
-        uint32_t total;
-        uint32_t max;
-    };
-} messageSize_t;
-
-typedef struct {
-    const char *name;
-    size_t nameLength;
-    messageSize_t size;
-    uint8_t hash[20];
-} messageInfo_t;
+using nadam::MessageInfo;
 
 // errors returned by interface functions
 #define NADAM_ERROR_UNKNOWN_NAME 300
@@ -51,7 +38,7 @@ typedef int (*recv_t)(void *dest, uint32_t n);
 /* If a delegate was set with setDelegate()
    memory pointed to by msg should be considered invalid after it returns.
    Size parmeter will provide the actual size of a variable size message.  */
-typedef void (*recvDelegate_t)(void *msg, uint32_t size, const messageInfo_t *messageInfo);
+typedef void (*recvDelegate_t)(void *msg, uint32_t size, const MessageInfo *messageInfo);
 
 // if the error delegate gets called, no new messages will be received (the connection should be closed)
 // errno won't be overwritten (check error argument instead)
@@ -66,13 +53,10 @@ typedef void (*errorDelegate_t)(int error);
    name's length is assumed to be the index of first '\0'.
    The limitation of this is that all names truncated at first '\0' have to be unique.
    init() will test for it. Barring that, messageInfos argument is expected to be correct.
-   Otherwise, the behaviour is undefined.
-
-   nameLength in messageInfo_t is endowed
-   by message info generator utility, but is ignored in this implementation.  */
+   Otherwise, the behaviour is undefined.  */
 
 // messageInfos will be used continuously - it should be unlimited lifetime const
-int init(const messageInfo_t *messageInfos, size_t messageInfoCount, size_t hashLengthMin);
+int init(const MessageInfo *messageInfos, size_t messageInfoCount, size_t hashLengthMin);
 
 /* If the delegate for a message type is not set, messages of this type are ignored (dumped).
    Passing NULL as second argument removes the delegate.
@@ -87,7 +71,7 @@ int initiate(send_t send, recv_t recv, errorDelegate_t errorDelegate);
 /* send() can only be used after a successful initiate() call.
    Size argument is ignored for constant size messages.  */
 int send(const char *name, const void *msg, uint32_t size);
-int sendUmi(const messageInfo_t *messageInfo, const void *msg, uint32_t size);
+int sendUmi(const MessageInfo *messageInfo, const void *msg, uint32_t size);
 
 // stops receiving - connection should be closed after this
 void stop(void);
