@@ -6,8 +6,8 @@ License:    opensource.org/licenses/MIT
 #include "nadam.h"
 
 #include <pthread.h>
-#include <errno.h>
-#include <assert.h>
+#include <cerrno>
+#include <cassert>
 
 #include "khash.h"
 
@@ -163,8 +163,13 @@ int nadam_send(const char *name, const void *msg, uint32_t size) {
         return sendVariableSize(mi, msg, size);
 }
 
-int nadam_sendWin(const char *name, const void *msg, uint32_t size) {
-    return nadam_send(name, msg, size); // TODO caching
+int nadam_sendUmi(const nadam_messageInfo_t *mi, const void *msg, uint32_t size) {
+	assert(mi);
+    bool isFixedSize = !mi->size.isVariable;
+    if(isFixedSize)
+        return sendFixedSize(mi, msg);
+    else
+        return sendVariableSize(mi, msg, size);
 }
 
 void nadam_stop(void) {

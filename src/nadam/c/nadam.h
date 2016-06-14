@@ -5,9 +5,8 @@ License:    opensource.org/licenses/MIT
 */
 #pragma once
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdlib>
+#include <cstdint>
 
 namespace nadam {
 namespace c {
@@ -86,10 +85,7 @@ int nadam_initiate(nadam_send_t send, nadam_recv_t recv, nadam_errorDelegate_t e
 /* nadam_send() can only be used after a successful nadam_initiate() call.
    Size argument is ignored for constant size messages.  */
 int nadam_send(const char *name, const void *msg, uint32_t size);
-/* Calling this send version (Send With Immutable Name) promises
-   that the name is a string literal or memory,
-   whose content won't change throughout the life of the program - allows name lookup caching.  */
-int nadam_sendWin(const char *name, const void *msg, uint32_t size);
+int nadam_sendUmi(const nadam_messageInfo_t *messageInfo, const void *msg, uint32_t size);
 
 // stops receiving - connection should be closed after this
 void nadam_stop(void);
