@@ -1,7 +1,8 @@
 set(TEMP_GCC_WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
 -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wconversion -Wstrict-prototypes")
 set(TEMP_GPP_WARNINGS "-Wall -Wextra -pedantic -Wpointer-arith -Wcast-align -Wwrite-strings \
--Wredundant-decls -Winline -Wno-long-long -Wconversion -Wzero-as-null-pointer-constant")
+-Wredundant-decls -Winline -Wno-long-long -Wno-conversion -Wzero-as-null-pointer-constant")
+#FIXME remove "no" from -Wno-conversion
 
 # repeating default flags is probably unnecessary; are they always empty?
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${TEMP_GCC_WARNINGS}")
