@@ -5,8 +5,8 @@
 namespace nadam {
 
 MessageInfo::MessageInfo(std::string name, uint32_t size, bool isVariableSize)
-	: name{name}, size{size}, isVariableSize{isVariableSize},
-	hash{constructHash(name, size, isVariableSize)} {
+	: name(name), size(size), isVariableSize(isVariableSize),
+	hash(constructHash(name, size, isVariableSize)) {
 	assert(name.length());
 }
 
