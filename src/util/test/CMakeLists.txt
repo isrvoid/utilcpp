@@ -1,1 +1,4 @@
-add_test_sources(semaphore.cpp)
+add_test_sources(
+	blockstore.cpp
+	semaphore.cpp
+	)
