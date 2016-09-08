@@ -27,11 +27,14 @@ public:
 };
 
 class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
+	void* mem{};
 	size_t _length{};
 	size_t _capacity{};
+	static constexpr size_t _blockSize = 8;
+	void freeMemory();
+	void zeroOutFreeTailMemory();
 
 public:
-	AtomicBlockStore();
 	~AtomicBlockStore();
 
 	size_t blockSize() override;

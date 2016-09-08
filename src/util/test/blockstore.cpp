@@ -108,6 +108,56 @@ TEST_F(AtomicBlockStoreTest, AllocationIncreasesLength) {
 	ASSERT_EQ(2, store.length());
 }
 
+class AtomicBlockStoreTest2 : public AtomicBlockStoreTest {
+protected:
+	size_t key1, key2;
+
+	AtomicBlockStoreTest2() {
+		key1 = store.allocBlock();
+		key2 = store.allocBlock();
+	}
+};
+
+// assumes blockSize
+TEST_F(AtomicBlockStoreTest2, InitValue) {
+	const uint64_t init{};
+	uint64_t val;
+
+	store.load(key1, &val);
+	ASSERT_EQ(init, val);
+	store.load(key2, &val);
+	ASSERT_EQ(init, val);
+}
+
+// assumes blockSize
+TEST_F(AtomicBlockStoreTest2, Store) {
+	const double test1 = 3.3333, test2 = 42.4242;
+	double val;
+
+	store.store(key1, &test1);
+	store.store(key2, &test2);
+
+	store.load(key1, &val);
+	ASSERT_EQ(test1, val);
+
+	store.load(key2, &val);
+	ASSERT_EQ(test2, val);
+}
+
+// assumes blockSize
+TEST_F(AtomicBlockStoreTest, LoadThrowsAtInvalidKey) {
+	uint64_t val;
+	ASSERT_THROW(store.load(0, &val), out_of_range);
+	ASSERT_THROW(store.load(42, &val), out_of_range);
+}
+
+// assumes blockSize
+TEST_F(AtomicBlockStoreTest, StoreThrowsAtInvalidKey) {
+	uint64_t val;
+	ASSERT_THROW(store.store(0, &val), out_of_range);
+	ASSERT_THROW(store.store(42, &val), out_of_range);
+}
+
 // freeing would require bookkeeping of allocated blocks -- initial implementation can get by without it
 // TODO delete this test and comment in following tests after implementing freeBlock()
 TEST_F(AtomicBlockStoreTest, FreeBlockThrows) {
@@ -141,9 +191,9 @@ TEST_F(AtomicBlockStoreTest, CapacityIsNonZeroAfterAllocation) {
 }
 
 TEST_F(AtomicBlockStoreTest, SetCapacity) {
-	ASSERT_GT(1000, store.capacity());
-	store.setCapacity(1000);
-	ASSERT_LE(1000, store.capacity());
+	ASSERT_GT(100, store.capacity());
+	store.setCapacity(100);
+	ASSERT_LE(100, store.capacity());
 }
 
 TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
