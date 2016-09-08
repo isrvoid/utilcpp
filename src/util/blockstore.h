@@ -27,6 +27,9 @@ public:
 };
 
 class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
+	size_t _length{};
+	size_t _capacity{};
+
 public:
 	AtomicBlockStore();
 	~AtomicBlockStore();

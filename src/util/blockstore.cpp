@@ -1,5 +1,6 @@
 #include "blockstore.h"
 
+#include <stdexcept>
 #include <cstdint>
 
 namespace util {
@@ -52,10 +53,12 @@ size_t AtomicBlockStore::blockSize() {
 }
 
 size_t AtomicBlockStore::allocBlock() {
-	return 0;
+	++_capacity;
+	return _length++;
 }
 
 void AtomicBlockStore::freeBlock(size_t) {
+	--_length;
 }
 
 void AtomicBlockStore::load(size_t, void*) {
@@ -65,14 +68,18 @@ void AtomicBlockStore::store(size_t, const void*) {
 }
 
 size_t AtomicBlockStore::length() {
-	return 0;
+	return _length;
 }
 
 size_t AtomicBlockStore::capacity() {
-	return 0;
+	return _capacity;
 }
 
-void AtomicBlockStore::setCapacity(size_t) {
+void AtomicBlockStore::setCapacity(size_t n) {
+	if (n < _length)
+		throw std::length_error("Capacity must be greater than or equal to length");
+
+	_capacity = n;
 }
 
 } // namespace util

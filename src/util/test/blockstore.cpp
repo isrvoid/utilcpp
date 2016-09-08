@@ -93,8 +93,53 @@ TEST_F(AtomicBlockStoreTest, BlockSizeIsAtomic) {
 	ASSERT_TRUE(atomic_is_lock_free(&v2));
 }
 
+TEST_F(AtomicBlockStoreTest, Length) {
+	ASSERT_EQ(0, store.length());
+}
+
 TEST_F(AtomicBlockStoreTest, AllocBlock) {
+	store.allocBlock();
+}
+
+TEST_F(AtomicBlockStoreTest, AllocationIncreasesLength) {
+	store.allocBlock();
+	ASSERT_EQ(1, store.length());
+	store.allocBlock();
+	ASSERT_EQ(2, store.length());
+}
+
+TEST_F(AtomicBlockStoreTest, FreeBlock) {
 	auto key = store.allocBlock();
+	store.freeBlock(key);
+}
+
+TEST_F(AtomicBlockStoreTest, FreeingDecreasesLength) {
+	auto key1 = store.allocBlock();
+	auto key2 = store.allocBlock();
+	store.freeBlock(key1);
+	ASSERT_EQ(1, store.length());
+	store.freeBlock(key2);
+	ASSERT_EQ(0, store.length());
+}
+
+TEST_F(AtomicBlockStoreTest, Capacity) {
+	store.capacity();
+}
+
+TEST_F(AtomicBlockStoreTest, CapacityIsNonZeroAfterAllocation) {
+	store.allocBlock();
+	ASSERT_LT(0, store.capacity());
+}
+
+TEST_F(AtomicBlockStoreTest, SetCapacity) {
+	ASSERT_GT(1000, store.capacity());
+	store.setCapacity(1000);
+	ASSERT_LE(1000, store.capacity());
+}
+
+TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
+	store.allocBlock();
+	ASSERT_THROW(store.setCapacity(0), length_error);
 }
 
 } // namespace
