@@ -11,10 +11,10 @@ public:
 	virtual ~IBlockStore() { }
 
 	virtual size_t blockSize() = 0;
-	virtual void* takeBlock() = 0;
-	virtual void freeBlock(void* key) = 0;
-	virtual void load(void* key, void* v) = 0;
-	virtual void store(void* key, const void* v) = 0;
+	virtual size_t takeBlock() = 0;
+	virtual void freeBlock(size_t key) = 0;
+	virtual void load(size_t key, void* v) = 0;
+	virtual void store(size_t key, const void* v) = 0;
 };
 
 class ICapacityControl {
@@ -32,10 +32,10 @@ public:
 	~AtomicBlockStore();
 
 	size_t blockSize() override;
-	void* takeBlock() override;
-	void freeBlock(void* key) override;
-	void load(void* key, void* v) override;
-	void store(void* key, const void* v) override;
+	size_t takeBlock() override;
+	void freeBlock(size_t key) override;
+	void load(size_t key, void* v) override;
+	void store(size_t key, const void* v) override;
 
 	size_t length() override;
 	size_t capacity() override;
@@ -53,7 +53,7 @@ public:
 // abstract base class for BlockStore wrapper that manages a single block
 class BlockGuard {
 protected:
-	void* key{};
+	size_t key{};
 
 public:
 	virtual ~BlockGuard() { }

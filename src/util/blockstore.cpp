@@ -9,11 +9,11 @@ size_t FakeBlockGuard<1>::blockSize() {
 }
 
 void FakeBlockGuard<1>::load(void* v) {
-	*static_cast<uint8_t*>(v) = reinterpret_cast<size_t>(key);
+	*static_cast<uint8_t*>(v) = key;
 }
 
 void FakeBlockGuard<1>::store(const void* v) {
-	reinterpret_cast<size_t&>(key) = *static_cast<const uint8_t*>(v);
+	key = *static_cast<const uint8_t*>(v);
 }
 
 size_t FakeBlockGuard<2>::blockSize() {
@@ -21,11 +21,11 @@ size_t FakeBlockGuard<2>::blockSize() {
 }
 
 void FakeBlockGuard<2>::load(void* v) {
-	*static_cast<uint16_t*>(v) = reinterpret_cast<size_t>(key);
+	*static_cast<uint16_t*>(v) = key;
 }
 
 void FakeBlockGuard<2>::store(const void* v) {
-	reinterpret_cast<size_t&>(key) = *static_cast<const uint16_t*>(v);
+	key = *static_cast<const uint16_t*>(v);
 }
 
 size_t FakeBlockGuard<4>::blockSize() {
@@ -33,11 +33,11 @@ size_t FakeBlockGuard<4>::blockSize() {
 }
 
 void FakeBlockGuard<4>::load(void* v) {
-	*static_cast<uint32_t*>(v) = reinterpret_cast<size_t>(key);
+	*static_cast<uint32_t*>(v) = key;
 }
 
 void FakeBlockGuard<4>::store(const void* v) {
-	reinterpret_cast<size_t&>(key) = *static_cast<const uint32_t*>(v);
+	key = *static_cast<const uint32_t*>(v);
 }
 
 // FIXME
@@ -51,17 +51,17 @@ size_t AtomicBlockStore::blockSize() {
 	return 8;
 }
 
-void* AtomicBlockStore::takeBlock() {
-	return nullptr;
+size_t AtomicBlockStore::takeBlock() {
+	return 0;
 }
 
-void AtomicBlockStore::freeBlock(void*) {
+void AtomicBlockStore::freeBlock(size_t) {
 }
 
-void AtomicBlockStore::load(void*, void*) {
+void AtomicBlockStore::load(size_t, void*) {
 }
 
-void AtomicBlockStore::store(void*, const void*) {
+void AtomicBlockStore::store(size_t, const void*) {
 }
 
 size_t AtomicBlockStore::length() {
