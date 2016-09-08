@@ -93,8 +93,8 @@ TEST_F(AtomicBlockStoreTest, BlockSizeIsAtomic) {
 	ASSERT_TRUE(atomic_is_lock_free(&v2));
 }
 
-TEST_F(AtomicBlockStoreTest, TakeBlock) {
-	auto key = store.takeBlock();
+TEST_F(AtomicBlockStoreTest, AllocBlock) {
+	auto key = store.allocBlock();
 }
 
 } // namespace

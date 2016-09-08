@@ -51,7 +51,7 @@ size_t AtomicBlockStore::blockSize() {
 	return 8;
 }
 
-size_t AtomicBlockStore::takeBlock() {
+size_t AtomicBlockStore::allocBlock() {
 	return 0;
 }
 

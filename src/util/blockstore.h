@@ -11,7 +11,7 @@ public:
 	virtual ~IBlockStore() { }
 
 	virtual size_t blockSize() = 0;
-	virtual size_t takeBlock() = 0;
+	virtual size_t allocBlock() = 0;
 	virtual void freeBlock(size_t key) = 0;
 	virtual void load(size_t key, void* v) = 0;
 	virtual void store(size_t key, const void* v) = 0;
@@ -32,7 +32,7 @@ public:
 	~AtomicBlockStore();
 
 	size_t blockSize() override;
-	size_t takeBlock() override;
+	size_t allocBlock() override;
 	void freeBlock(size_t key) override;
 	void load(size_t key, void* v) override;
 	void store(size_t key, const void* v) override;
