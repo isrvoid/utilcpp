@@ -108,6 +108,14 @@ TEST_F(AtomicBlockStoreTest, AllocationIncreasesLength) {
 	ASSERT_EQ(2, store.length());
 }
 
+// freeing would require bookkeeping of allocated blocks -- initial implementation can get by without it
+// TODO delete this test and comment in following tests after implementing freeBlock()
+TEST_F(AtomicBlockStoreTest, FreeBlockThrows) {
+	auto key = store.allocBlock();
+	ASSERT_THROW(store.freeBlock(key), logic_error);
+}
+
+/*
 TEST_F(AtomicBlockStoreTest, FreeBlock) {
 	auto key = store.allocBlock();
 	store.freeBlock(key);
@@ -121,6 +129,7 @@ TEST_F(AtomicBlockStoreTest, FreeingDecreasesLength) {
 	store.freeBlock(key2);
 	ASSERT_EQ(0, store.length());
 }
+*/
 
 TEST_F(AtomicBlockStoreTest, Capacity) {
 	store.capacity();

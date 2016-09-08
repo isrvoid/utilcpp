@@ -58,7 +58,7 @@ size_t AtomicBlockStore::allocBlock() {
 }
 
 void AtomicBlockStore::freeBlock(size_t) {
-	--_length;
+	throw std::logic_error("not implemented");
 }
 
 void AtomicBlockStore::load(size_t, void*) {
