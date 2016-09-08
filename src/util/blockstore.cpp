@@ -51,7 +51,7 @@ size_t AtomicBlockStore::blockSize() {
 	return 8;
 }
 
-void* AtomicBlockStore::getBlock() {
+void* AtomicBlockStore::takeBlock() {
 	return nullptr;
 }
 
