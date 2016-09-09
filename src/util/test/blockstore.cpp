@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <stdio.h>
+#include <memory>
 #include <atomic>
 
 #include <util/blockstore.h>
