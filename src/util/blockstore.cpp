@@ -7,6 +7,16 @@
 
 namespace util {
 
+size_t FakeBlockGuard<0>::blockSize() {
+	return 0;
+}
+
+void FakeBlockGuard<0>::load(void*) {
+}
+
+void FakeBlockGuard<0>::store(const void*) {
+}
+
 size_t FakeBlockGuard<1>::blockSize() {
 	return 1;
 }

@@ -12,10 +12,15 @@ namespace util {
 
 class FakeBlockGuardTest : public ::testing::Test {
 protected:
+	unique_ptr<BlockGuard> block0 = make_unique<FakeBlockGuard<0>>();
 	unique_ptr<BlockGuard> block1 = make_unique<FakeBlockGuard<1>>();
 	unique_ptr<BlockGuard> block2 = make_unique<FakeBlockGuard<2>>();
 	unique_ptr<BlockGuard> block4 = make_unique<FakeBlockGuard<4>>();
 };
+
+TEST_F(FakeBlockGuardTest, BlockSize0) {
+	ASSERT_EQ(0, block0->blockSize());
+}
 
 TEST_F(FakeBlockGuardTest, BlockSize1) {
 	ASSERT_EQ(1, block1->blockSize());
@@ -27,6 +32,12 @@ TEST_F(FakeBlockGuardTest, BlockSize2) {
 
 TEST_F(FakeBlockGuardTest, BlockSize4) {
 	ASSERT_EQ(4, block4->blockSize());
+}
+
+TEST_F(FakeBlockGuardTest, Load0IsIgnored) {
+	double val = 42.4242;
+	block0->load(&val);
+	ASSERT_EQ(42.4242, val);
 }
 
 TEST_F(FakeBlockGuardTest, InitValue1) {
@@ -45,6 +56,14 @@ TEST_F(FakeBlockGuardTest, InitValue4) {
 	uint32_t val;
 	block4->load(&val);
 	ASSERT_EQ(0, val);
+}
+
+TEST_F(FakeBlockGuardTest, Store0IsIgnored) {
+	const uint8_t store = 0xbd;
+	double load = 1.23456789;
+	block0->store(&store);
+	block0->load(&load);
+	ASSERT_EQ(1.23456789, load);
 }
 
 TEST_F(FakeBlockGuardTest, Store1) {

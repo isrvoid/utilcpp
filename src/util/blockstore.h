@@ -69,8 +69,17 @@ public:
 	virtual void store(const void* v) = 0;
 };
 
+// FIXME rename FakeBlockGuard
 template<size_t block_size>
 class FakeBlockGuard : public BlockGuard {
+};
+
+template<>
+class FakeBlockGuard<0> : public BlockGuard {
+public:
+	void load(void* v) override;
+	void store(const void* v) override;
+	size_t blockSize() override;
 };
 
 template<>
