@@ -63,10 +63,12 @@ class BlockStoreManager {
 
 	BlockStoreManager() = delete;
 
-public:
-	static IBlockStore& instance(size_t blockSize);
+	static std::unique_ptr<IBlockStore> createInstance(size_t blockSize) noexcept;
 
-	// TODO method for capping capacity
+public:
+	static IBlockStore& instance(size_t blockSize) noexcept;
+
+	// TODO method to cap capacity
 };
 
 // minimal block alignment is 4

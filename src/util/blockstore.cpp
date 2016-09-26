@@ -7,11 +7,22 @@
 
 namespace util {
 
-IBlockStore& BlockStoreManager::instance(size_t) {
-	// FIXME
-	static AtomicBlockStore temp;
-	return temp;
+IBlockStore& BlockStoreManager::instance(size_t blockSize) noexcept {
+	assert(blockSize > sizeof(void*) && blockSize % 4 == 0);
+	auto& p = stores[blockSize];
+	if (p.get() == nullptr)
+		p = createInstance(blockSize);
+	return *p;
 }
+
+std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize) noexcept {
+	if (blockSize == sizeof(MaxAtomic))
+		return std::make_unique<AtomicBlockStore>();
+	else
+		return std::make_unique<AtomicBlockStore>(); // FIXME
+}
+
+std::unordered_map<size_t, std::unique_ptr<IBlockStore>> BlockStoreManager::stores;
 
 size_t FakeBlockGuard<0>::blockSize() {
 	return 0;
