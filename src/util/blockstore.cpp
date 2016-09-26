@@ -153,16 +153,15 @@ void AtomicBlockStore::freeMemory() noexcept {
 }
 
 void AtomicBlockStore::zeroOutFreeTailMemory() noexcept {
-	size_t indexAfterLastBlock = _length;
-	assert(indexAfterLastBlock <= _capacity);
-	size_t freeTailBlockCount = _capacity - indexAfterLastBlock;
-	memset(static_cast<uint8_t*>(mem) + indexAfterLastBlock * _blockSize, 0, freeTailBlockCount * _blockSize);
+	assert(_length <= _capacity);
+	size_t freeTailBlockCount = _capacity - _length;
+	memset(static_cast<uint8_t*>(mem) + _length * _blockSize, 0, freeTailBlockCount * _blockSize);
 }
 
 BlockStore::BlockStore(size_t blockSize) noexcept : _blockSize(blockSize) { }
 
-// FIXME
 BlockStore::~BlockStore() {
+	freeMemory();
 }
 
 size_t BlockStore::blockSize() noexcept {
@@ -170,6 +169,9 @@ size_t BlockStore::blockSize() noexcept {
 }
 
 size_t BlockStore::allocBlock() {
+	if (_length == _capacity)
+		setCapacity(_capacity ? _capacity * 2 : 1);
+
 	return _length++;
 }
 
@@ -177,10 +179,18 @@ void BlockStore::freeBlock(size_t) {
 	throw std::logic_error("not implemented");
 }
 
-void BlockStore::load(size_t, void*) {
+void BlockStore::load(size_t key, void* v) {
+	if (key >= _length)
+		throw std::out_of_range("Invalid key");
+
+	memcpy(v, static_cast<uint8_t*>(mem) + _blockSize * key, _blockSize);
 }
 
-void BlockStore::store(size_t, const void*) {
+void BlockStore::store(size_t key, const void* v) {
+	if (key >= _length)
+		throw std::out_of_range("Invalid key");
+
+	memcpy(static_cast<uint8_t*>(mem) + _blockSize * key, v, _blockSize);
 }
 
 size_t BlockStore::length() noexcept {
@@ -191,7 +201,37 @@ size_t BlockStore::capacity() noexcept {
 	return _capacity;
 }
 
-void BlockStore::setCapacity(size_t) {
+void BlockStore::setCapacity(size_t n) {
+	if (n < _length)
+		throw std::length_error("Capacity must be greater than or equal to length");
+
+	if (n == _capacity)
+		return;
+
+	if (n == 0) {
+		freeMemory();
+		return;
+	}
+
+	auto newMem = realloc(mem, _blockSize * n);
+	if (!newMem)
+		throw new std::runtime_error("realloc() failed");
+
+	mem = newMem;
+	_capacity = n;
+
+	zeroOutFreeTailMemory();
+}
+
+void BlockStore::freeMemory() noexcept {
+	free(mem);
+	mem = nullptr;
+}
+
+void BlockStore::zeroOutFreeTailMemory() noexcept {
+	assert(_length <= _capacity);
+	size_t freeTailBlockCount = _capacity - _length;
+	memset(static_cast<uint8_t*>(mem) + _length * _blockSize, 0, freeTailBlockCount * _blockSize);
 }
 
 } // namespace util

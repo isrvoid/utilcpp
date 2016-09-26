@@ -79,6 +79,9 @@ class BlockStore : public virtual IBlockStore, public virtual ICapacityControl {
 	size_t _capacity{};
 	const size_t _blockSize;
 
+	void freeMemory() noexcept;
+	void zeroOutFreeTailMemory() noexcept;
+
 public:
 	BlockStore(size_t blockSize) noexcept;
 	~BlockStore();

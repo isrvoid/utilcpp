@@ -171,8 +171,7 @@ protected:
 	}
 };
 
-template<typename T>
-bool operator==(const T& lhs, const T& rhs) {
+bool operator==(const MaxAtomic& lhs, const MaxAtomic& rhs) {
 	return !memcmp(&lhs, &rhs, sizeof(lhs));
 }
 
@@ -263,12 +262,13 @@ TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
 
 class BlockStoreTest : public ::testing::Test {
 protected:
-	const size_t blockSize = 40;
+	static constexpr size_t blockSize = 40;
 	BlockStore store = BlockStore(blockSize);
 };
 
 TEST_F(BlockStoreTest, BlockSize) {
-	ASSERT_EQ(blockSize, store.blockSize());
+	auto size = blockSize;
+	ASSERT_EQ(size, store.blockSize());
 }
 
 TEST_F(BlockStoreTest, Length) {
@@ -284,6 +284,101 @@ TEST_F(BlockStoreTest, AllocationIncreasesLength) {
 	ASSERT_EQ(1, store.length());
 	store.allocBlock();
 	ASSERT_EQ(2, store.length());
+}
+
+class BlockStoreTest2 : public BlockStoreTest {
+protected:
+	size_t key1, key2;
+
+	BlockStoreTest2() {
+		key1 = store.allocBlock();
+		key2 = store.allocBlock();
+	}
+};
+
+TEST_F(BlockStoreTest2, InitValue) {
+	const uint32_t init[blockSize / 4]{};
+	uint32_t val[blockSize / 4];
+
+	store.load(key1, &val);
+	ASSERT_EQ(0, memcmp(init, val, blockSize));
+	store.load(key2, &val);
+	ASSERT_EQ(0, memcmp(init, val, blockSize));
+}
+
+TEST_F(BlockStoreTest2, Store) {
+	uint8_t test1[blockSize], test2[blockSize];
+	memset(&test1, 0xa5, sizeof(test1));
+	memset(&test2, 0x96, sizeof(test2));
+	uint8_t val[blockSize];
+
+	store.store(key1, &test1);
+	store.store(key2, &test2);
+
+	store.load(key1, &val);
+	ASSERT_EQ(0, memcmp(test1, val, sizeof(test1)));
+
+	store.load(key2, &val);
+	ASSERT_EQ(0, memcmp(test2, val, sizeof(test2)));
+}
+
+TEST_F(BlockStoreTest, LoadThrowsAtInvalidKey) {
+	uint8_t val[blockSize];
+	ASSERT_THROW(store.load(0, &val), out_of_range);
+	ASSERT_THROW(store.load(42, &val), out_of_range);
+}
+
+TEST_F(BlockStoreTest, StoreThrowsAtInvalidKey) {
+	uint8_t val[blockSize];
+	ASSERT_THROW(store.store(0, &val), out_of_range);
+	ASSERT_THROW(store.store(42, &val), out_of_range);
+}
+
+// freeing would require bookkeeping of allocated blocks -- initial implementation can get by without it
+// TODO delete this test and comment in following tests after implementing freeBlock()
+TEST_F(BlockStoreTest, FreeBlockThrows) {
+	auto key = store.allocBlock();
+	ASSERT_THROW(store.freeBlock(key), logic_error);
+}
+
+/*
+TEST_F(BlockStoreTest, FreeBlock) {
+	auto key = store.allocBlock();
+	store.freeBlock(key);
+}
+
+TEST_F(BlockStoreTest, FreeingDecreasesLength) {
+	auto key1 = store.allocBlock();
+	auto key2 = store.allocBlock();
+	store.freeBlock(key1);
+	ASSERT_EQ(1, store.length());
+	store.freeBlock(key2);
+	ASSERT_EQ(0, store.length());
+}
+*/
+
+TEST_F(BlockStoreTest, Capacity) {
+	store.capacity();
+}
+
+TEST_F(BlockStoreTest, AllocIncreasesCapacityIfNoSpaceIsAvailable) {
+	auto initialCapacity = store.capacity();
+	while (store.length() < store.capacity())
+		store.allocBlock();
+
+	store.allocBlock();
+	ASSERT_LT(initialCapacity, store.capacity());
+}
+
+TEST_F(BlockStoreTest, SetCapacity) {
+	auto newCapacity = store.capacity() + 3;
+	store.setCapacity(newCapacity);
+	ASSERT_LE(newCapacity, store.capacity());
+}
+
+TEST_F(BlockStoreTest, SettingCapacityBelowLengthThrows) {
+	store.allocBlock();
+	ASSERT_THROW(store.setCapacity(0), length_error);
 }
 
 TEST(BlockStoreManager, GetStore) {
