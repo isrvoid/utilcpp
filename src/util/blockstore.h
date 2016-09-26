@@ -128,6 +128,16 @@ public:
 
 };
 
+#ifdef _LP64
+template<>
+class FakeBlockGuard<8> : public BlockGuard {
+public:
+	void load(void* v) override;
+	void store(const void* v) override;
+	size_t blockSize() override;
+};
+#endif
+
 class BlockGuardImpl : public BlockGuard {
 private:
 	IBlockStore* store{};

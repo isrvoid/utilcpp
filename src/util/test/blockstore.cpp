@@ -17,6 +17,9 @@ protected:
 	unique_ptr<BlockGuard> block1 = make_unique<FakeBlockGuard<1>>();
 	unique_ptr<BlockGuard> block2 = make_unique<FakeBlockGuard<2>>();
 	unique_ptr<BlockGuard> block4 = make_unique<FakeBlockGuard<4>>();
+#ifdef _LP64
+	unique_ptr<BlockGuard> block8 = make_unique<FakeBlockGuard<8>>();
+#endif
 };
 
 TEST_F(FakeBlockGuardTest, BlockSize0) {
@@ -84,12 +87,32 @@ TEST_F(FakeBlockGuardTest, Store2) {
 }
 
 TEST_F(FakeBlockGuardTest, Store4) {
-	const uint32_t store = 0xa555aaa5;
+	const uint32_t store = 0x5aaaaa55;
 	uint32_t load;
 	block4->store(&store);
 	block4->load(&load);
 	ASSERT_EQ(store, load);
 }
+
+#ifdef _LP64
+TEST_F(FakeBlockGuardTest, BlockSize8) {
+	ASSERT_EQ(8, block8->blockSize());
+}
+
+TEST_F(FakeBlockGuardTest, InitValue8) {
+	uint64_t val;
+	block8->load(&val);
+	ASSERT_EQ(0, val);
+}
+
+TEST_F(FakeBlockGuardTest, Store8) {
+	const uint64_t store = 0x5aaaaaaaaaaaaa55;
+	uint64_t load;
+	block8->store(&store);
+	block8->load(&load);
+	ASSERT_EQ(store, load);
+}
+#endif
 
 TEST(MaxAtomicTest, AssignmentAffectsAllBytes) {
 	// more of a sanity check

@@ -59,6 +59,20 @@ void FakeBlockGuard<4>::store(const void* v) {
 	key = *static_cast<const uint32_t*>(v);
 }
 
+#ifdef _LP64
+size_t FakeBlockGuard<8>::blockSize() {
+	return 8;
+}
+
+void FakeBlockGuard<8>::load(void* v) {
+	*static_cast<uint64_t*>(v) = key;
+}
+
+void FakeBlockGuard<8>::store(const void* v) {
+	key = *static_cast<const uint64_t*>(v);
+}
+#endif
+
 void AtomicBlockStore::freeMemory() {
 	free(mem);
 	mem = nullptr;
