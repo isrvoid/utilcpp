@@ -241,15 +241,19 @@ TEST_F(AtomicBlockStoreTest, Capacity) {
 	store.capacity();
 }
 
-TEST_F(AtomicBlockStoreTest, CapacityIsNonZeroAfterAllocation) {
+TEST_F(AtomicBlockStoreTest, AllocIncreasesCapacityIfNoSpaceIsAvailable) {
+	auto initialCapacity = store.capacity();
+	while (store.length() < store.capacity())
+		store.allocBlock();
+
 	store.allocBlock();
-	ASSERT_LT(0, store.capacity());
+	ASSERT_LT(initialCapacity, store.capacity());
 }
 
 TEST_F(AtomicBlockStoreTest, SetCapacity) {
-	ASSERT_GT(100, store.capacity());
-	store.setCapacity(100);
-	ASSERT_LE(100, store.capacity());
+	auto newCapacity = store.capacity() + 3;
+	store.setCapacity(newCapacity);
+	ASSERT_LE(newCapacity, store.capacity());
 }
 
 TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
@@ -260,11 +264,26 @@ TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
 class BlockStoreTest : public ::testing::Test {
 protected:
 	const size_t blockSize = 40;
-	//BlockStore store = BlockStore(blockSize);
+	BlockStore store = BlockStore(blockSize);
 };
 
 TEST_F(BlockStoreTest, BlockSize) {
-	//ASSERT_EQ(blockSize, store.blockSize());
+	ASSERT_EQ(blockSize, store.blockSize());
+}
+
+TEST_F(BlockStoreTest, Length) {
+	ASSERT_EQ(0, store.length());
+}
+
+TEST_F(BlockStoreTest, AllocBlock) {
+	store.allocBlock();
+}
+
+TEST_F(BlockStoreTest, AllocationIncreasesLength) {
+	store.allocBlock();
+	ASSERT_EQ(1, store.length());
+	store.allocBlock();
+	ASSERT_EQ(2, store.length());
 }
 
 TEST(BlockStoreManager, GetStore) {

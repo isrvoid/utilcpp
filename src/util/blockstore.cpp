@@ -92,7 +92,7 @@ size_t AtomicBlockStore::blockSize() noexcept {
 	return _blockSize;
 }
 
-size_t AtomicBlockStore::allocBlock() noexcept {
+size_t AtomicBlockStore::allocBlock() {
 	if (_length == _capacity)
 		setCapacity(_capacity ? _capacity * 2 : 1);
 
@@ -157,6 +157,41 @@ void AtomicBlockStore::zeroOutFreeTailMemory() noexcept {
 	assert(indexAfterLastBlock <= _capacity);
 	size_t freeTailBlockCount = _capacity - indexAfterLastBlock;
 	memset(static_cast<uint8_t*>(mem) + indexAfterLastBlock * _blockSize, 0, freeTailBlockCount * _blockSize);
+}
+
+BlockStore::BlockStore(size_t blockSize) noexcept : _blockSize(blockSize) { }
+
+// FIXME
+BlockStore::~BlockStore() {
+}
+
+size_t BlockStore::blockSize() noexcept {
+	return _blockSize;
+}
+
+size_t BlockStore::allocBlock() {
+	return _length++;
+}
+
+void BlockStore::freeBlock(size_t) {
+	throw std::logic_error("not implemented");
+}
+
+void BlockStore::load(size_t, void*) {
+}
+
+void BlockStore::store(size_t, const void*) {
+}
+
+size_t BlockStore::length() noexcept {
+	return _length;
+}
+
+size_t BlockStore::capacity() noexcept {
+	return _capacity;
+}
+
+void BlockStore::setCapacity(size_t) {
 }
 
 } // namespace util

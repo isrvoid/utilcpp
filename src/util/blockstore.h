@@ -28,36 +28,6 @@ public:
 	virtual void setCapacity(size_t n) = 0;
 };
 
-// this only works for machines that can set values of size 2*sizeof(void*) atomically (e.g. armv7a, x86 MMX)
-template<size_t pointer_size>
-struct MaxAtomicForPointerSize {
-	uint64_t _dummy[2 * sizeof(void*) / 8];
-};
-
-using MaxAtomic = MaxAtomicForPointerSize<sizeof(void*)>;
-
-class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
-	void* mem{};
-	size_t _length{};
-	size_t _capacity{};
-	static constexpr size_t _blockSize = 2 * sizeof(void*);
-	void freeMemory() noexcept;
-	void zeroOutFreeTailMemory() noexcept;
-
-public:
-	~AtomicBlockStore();
-
-	size_t blockSize() noexcept override;
-	size_t allocBlock() noexcept override;
-	void freeBlock(size_t key) override;
-	void load(size_t key, void* v) override;
-	void store(size_t key, const void* v) override;
-
-	size_t length() noexcept override;
-	size_t capacity() noexcept override;
-	void setCapacity(size_t n) override;
-};
-
 class BlockStoreManager {
 	static std::unordered_map<size_t, std::unique_ptr<IBlockStore>> stores;
 
@@ -71,21 +41,56 @@ public:
 	// TODO method to cap capacity
 };
 
-// minimal block alignment is 4
-// FIXME
-class BlockStore : public virtual IBlockStore, public virtual ICapacityControl {
-public:
-	BlockStore(size_t blockSize);
-	~BlockStore();
+// this only works for machines that can set values of size 2*sizeof(void*) atomically (e.g. armv7a, x86 MMX)
+template<size_t pointer_size>
+struct MaxAtomicForPointerSize {
+	uint64_t _dummy[2 * sizeof(void*) / 8];
+};
 
-	size_t blockSize() override;
+using MaxAtomic = MaxAtomicForPointerSize<sizeof(void*)>;
+
+class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
+	void* mem{};
+	size_t _length{};
+	size_t _capacity{};
+	static constexpr size_t _blockSize = 2 * sizeof(void*);
+
+	void freeMemory() noexcept;
+	void zeroOutFreeTailMemory() noexcept;
+
+public:
+	~AtomicBlockStore();
+
+	size_t blockSize() noexcept override;
 	size_t allocBlock() override;
 	void freeBlock(size_t key) override;
 	void load(size_t key, void* v) override;
 	void store(size_t key, const void* v) override;
 
-	size_t length() override;
-	size_t capacity() override;
+	size_t length() noexcept override;
+	size_t capacity() noexcept override;
+	void setCapacity(size_t n) override;
+};
+
+// minimal block alignment is 4
+class BlockStore : public virtual IBlockStore, public virtual ICapacityControl {
+	void* mem{};
+	size_t _length{};
+	size_t _capacity{};
+	const size_t _blockSize;
+
+public:
+	BlockStore(size_t blockSize) noexcept;
+	~BlockStore();
+
+	size_t blockSize() noexcept override;
+	size_t allocBlock() override;
+	void freeBlock(size_t key) override;
+	void load(size_t key, void* v) override;
+	void store(size_t key, const void* v) override;
+
+	size_t length() noexcept override;
+	size_t capacity() noexcept override;
 	void setCapacity(size_t n) override;
 };
 
