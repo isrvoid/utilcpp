@@ -84,27 +84,15 @@ void FakeBlockGuard<8>::store(const void* v) {
 }
 #endif
 
-void AtomicBlockStore::freeMemory() {
-	free(mem);
-	mem = nullptr;
-}
-
-void AtomicBlockStore::zeroOutFreeTailMemory() {
-	size_t indexAfterLastBlock = _length;
-	assert(indexAfterLastBlock <= _capacity);
-	size_t freeTailBlockCount = _capacity - indexAfterLastBlock;
-	memset(static_cast<uint8_t*>(mem) + indexAfterLastBlock * _blockSize, 0, freeTailBlockCount * _blockSize);
-}
-
 AtomicBlockStore::~AtomicBlockStore() {
 	freeMemory();
 }
 
-size_t AtomicBlockStore::blockSize() {
+size_t AtomicBlockStore::blockSize() noexcept {
 	return _blockSize;
 }
 
-size_t AtomicBlockStore::allocBlock() {
+size_t AtomicBlockStore::allocBlock() noexcept {
 	if (_length == _capacity)
 		setCapacity(_capacity ? _capacity * 2 : 1);
 
@@ -129,11 +117,11 @@ void AtomicBlockStore::store(size_t key, const void* v) {
 	static_cast<MaxAtomic*>(mem)[key] = *static_cast<const MaxAtomic*>(v);
 }
 
-size_t AtomicBlockStore::length() {
+size_t AtomicBlockStore::length() noexcept {
 	return _length;
 }
 
-size_t AtomicBlockStore::capacity() {
+size_t AtomicBlockStore::capacity() noexcept {
 	return _capacity;
 }
 
@@ -157,6 +145,18 @@ void AtomicBlockStore::setCapacity(size_t n) {
 	_capacity = n;
 
 	zeroOutFreeTailMemory();
+}
+
+void AtomicBlockStore::freeMemory() noexcept {
+	free(mem);
+	mem = nullptr;
+}
+
+void AtomicBlockStore::zeroOutFreeTailMemory() noexcept {
+	size_t indexAfterLastBlock = _length;
+	assert(indexAfterLastBlock <= _capacity);
+	size_t freeTailBlockCount = _capacity - indexAfterLastBlock;
+	memset(static_cast<uint8_t*>(mem) + indexAfterLastBlock * _blockSize, 0, freeTailBlockCount * _blockSize);
 }
 
 } // namespace util

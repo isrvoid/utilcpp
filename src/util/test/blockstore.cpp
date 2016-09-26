@@ -257,6 +257,16 @@ TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
 	ASSERT_THROW(store.setCapacity(0), length_error);
 }
 
+class BlockStoreTest : public ::testing::Test {
+protected:
+	const size_t blockSize = 40;
+	//BlockStore store = BlockStore(blockSize);
+};
+
+TEST_F(BlockStoreTest, BlockSize) {
+	//ASSERT_EQ(blockSize, store.blockSize());
+}
+
 TEST(BlockStoreManager, GetStore) {
 	// FIXME
 	//auto& store = BlockStoreManager::instance(64);

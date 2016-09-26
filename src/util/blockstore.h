@@ -41,20 +41,20 @@ class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityCon
 	size_t _length{};
 	size_t _capacity{};
 	static constexpr size_t _blockSize = 2 * sizeof(void*);
-	void freeMemory();
-	void zeroOutFreeTailMemory();
+	void freeMemory() noexcept;
+	void zeroOutFreeTailMemory() noexcept;
 
 public:
 	~AtomicBlockStore();
 
-	size_t blockSize() override;
-	size_t allocBlock() override;
+	size_t blockSize() noexcept override;
+	size_t allocBlock() noexcept override;
 	void freeBlock(size_t key) override;
 	void load(size_t key, void* v) override;
 	void store(size_t key, const void* v) override;
 
-	size_t length() override;
-	size_t capacity() override;
+	size_t length() noexcept override;
+	size_t capacity() noexcept override;
 	void setCapacity(size_t n) override;
 };
 
@@ -77,6 +77,16 @@ class BlockStore : public virtual IBlockStore, public virtual ICapacityControl {
 public:
 	BlockStore(size_t blockSize);
 	~BlockStore();
+
+	size_t blockSize() override;
+	size_t allocBlock() override;
+	void freeBlock(size_t key) override;
+	void load(size_t key, void* v) override;
+	void store(size_t key, const void* v) override;
+
+	size_t length() override;
+	size_t capacity() override;
+	void setCapacity(size_t n) override;
 };
 
 // abstract base class for BlockStore wrapper that manages a single block
