@@ -94,14 +94,14 @@ void AtomicBlockStore::load(size_t key, void* v) {
 	if (key >= _length)
 		throw std::out_of_range("Invalid key");
 
-	*static_cast<uint64_t*>(v) = static_cast<uint64_t*>(mem)[key];
+	*static_cast<MaxAtomic*>(v) = static_cast<MaxAtomic*>(mem)[key];
 }
 
 void AtomicBlockStore::store(size_t key, const void* v) {
 	if (key >= _length)
 		throw std::out_of_range("Invalid key");
 
-	static_cast<uint64_t*>(mem)[key] = *static_cast<const uint64_t*>(v);
+	static_cast<MaxAtomic*>(mem)[key] = *static_cast<const MaxAtomic*>(v);
 }
 
 size_t AtomicBlockStore::length() {

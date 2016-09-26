@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <memory>
 #include <atomic>
+#include <cstring>
 
 #include <util/blockstore.h>
 
@@ -90,6 +91,24 @@ TEST_F(FakeBlockGuardTest, Store4) {
 	ASSERT_EQ(store, load);
 }
 
+TEST(MaxAtomicTest, AssignmentAffectsAllBytes) {
+	// more of a sanity check
+	MaxAtomic expected, v;
+	memset(&expected, 0x5a, sizeof(expected));
+	v = expected;
+	ASSERT_EQ(0, memcmp(&expected, &v, sizeof(expected)));
+}
+
+// platform dependent -- relevant for lock free operations on shared_ptr for example
+TEST(MaxAtomicTest, IsTwiceThePointerSize) {
+	ASSERT_EQ(2 * sizeof(void*), sizeof(MaxAtomic));
+}
+
+TEST(MaxAtomicTest, IsLockFree) {
+	atomic<MaxAtomic> v;
+	ASSERT_TRUE(atomic_is_lock_free(&v));
+}
+
 class AtomicBlockStoreTest : public ::testing::Test {
 protected:
 	AtomicBlockStore store;
@@ -99,18 +118,9 @@ TEST_F(AtomicBlockStoreTest, BlockSize) {
 	store.blockSize();
 }
 
-// platform dependent -- least common denominator between 32 bit ARM and x86_64
-TEST_F(AtomicBlockStoreTest, BlockSizeIsAtomic) {
-	ASSERT_EQ(8, store.blockSize());
-	atomic<double> v1;
-
-	struct Foo {
-		int32_t x, y;
-	};
-	atomic<Foo> v2;
-
-	ASSERT_TRUE(atomic_is_lock_free(&v1));
-	ASSERT_TRUE(atomic_is_lock_free(&v2));
+// platform dependent
+TEST_F(AtomicBlockStoreTest, BlockSizeIsMaxAtomic) {
+	ASSERT_EQ(sizeof(MaxAtomic), store.blockSize());
 }
 
 TEST_F(AtomicBlockStoreTest, Length) {
@@ -138,10 +148,14 @@ protected:
 	}
 };
 
-// assumes blockSize
+template<typename T>
+bool operator==(const T& lhs, const T& rhs) {
+	return !memcmp(&lhs, &rhs, sizeof(lhs));
+}
+
 TEST_F(AtomicBlockStoreTest2, InitValue) {
-	const uint64_t init{};
-	uint64_t val;
+	const MaxAtomic init{};
+	MaxAtomic val;
 
 	store.load(key1, &val);
 	ASSERT_EQ(init, val);
@@ -149,10 +163,11 @@ TEST_F(AtomicBlockStoreTest2, InitValue) {
 	ASSERT_EQ(init, val);
 }
 
-// assumes blockSize
 TEST_F(AtomicBlockStoreTest2, Store) {
-	const double test1 = 3.3333, test2 = 42.4242;
-	double val;
+	MaxAtomic test1, test2;
+	memset(&test1, 0xa5, sizeof(MaxAtomic));
+	memset(&test2, 0x96, sizeof(MaxAtomic));
+	MaxAtomic val;
 
 	store.store(key1, &test1);
 	store.store(key2, &test2);
@@ -164,16 +179,14 @@ TEST_F(AtomicBlockStoreTest2, Store) {
 	ASSERT_EQ(test2, val);
 }
 
-// assumes blockSize
 TEST_F(AtomicBlockStoreTest, LoadThrowsAtInvalidKey) {
-	uint64_t val;
+	MaxAtomic val;
 	ASSERT_THROW(store.load(0, &val), out_of_range);
 	ASSERT_THROW(store.load(42, &val), out_of_range);
 }
 
-// assumes blockSize
 TEST_F(AtomicBlockStoreTest, StoreThrowsAtInvalidKey) {
-	uint64_t val;
+	MaxAtomic val;
 	ASSERT_THROW(store.store(0, &val), out_of_range);
 	ASSERT_THROW(store.store(42, &val), out_of_range);
 }
@@ -222,8 +235,9 @@ TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
 }
 
 TEST(BlockStoreManager, GetStore) {
-	auto& store = BlockStoreManager::instance(64);
-	//ASSERT_EQ(64, store.blockSize()); FIXME
+	// FIXME
+	//auto& store = BlockStoreManager::instance(64);
+	//ASSERT_EQ(64, store.blockSize());
 }
 
 } // namespace

@@ -28,11 +28,19 @@ public:
 	virtual void setCapacity(size_t n) = 0;
 };
 
+// this only works for machines that can set values of size 2*sizeof(void*) atomically (e.g. armv7a, x86 MMX)
+template<size_t pointer_size>
+struct MaxAtomicForPointerSize {
+	uint64_t _dummy[2 * sizeof(void*) / 8];
+};
+
+using MaxAtomic = MaxAtomicForPointerSize<sizeof(void*)>;
+
 class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
 	void* mem{};
 	size_t _length{};
 	size_t _capacity{};
-	static constexpr size_t _blockSize = 8;
+	static constexpr size_t _blockSize = 2 * sizeof(void*);
 	void freeMemory();
 	void zeroOutFreeTailMemory();
 
@@ -84,7 +92,7 @@ public:
 
 // FIXME rename FakeBlockGuard
 template<size_t block_size>
-class FakeBlockGuard : public BlockGuard {
+class FakeBlockGuard {
 };
 
 template<>

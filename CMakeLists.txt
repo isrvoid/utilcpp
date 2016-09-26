@@ -24,5 +24,5 @@ get_property(TEST_SOURCES GLOBAL PROPERTY G_TEST_SOURCES)
 
 add_executable(unittest unittest.cpp ${APP_SOURCES} ${TEST_SOURCES})
 target_compile_definitions(unittest PUBLIC UNITTEST)
-target_link_libraries(unittest ${GTEST_LIBRARIES} pthread)
+target_link_libraries(unittest ${GTEST_LIBRARIES} pthread atomic)
 add_test(NAME "${PROJECT_NAME}Test" COMMAND unittest)
