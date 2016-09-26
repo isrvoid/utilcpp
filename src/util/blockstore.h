@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
+#include <unordered_map>
 
 namespace util {
 
@@ -45,7 +47,18 @@ public:
 
 	size_t length() override;
 	size_t capacity() override;
-	void setCapacity(size_t n);
+	void setCapacity(size_t n) override;
+};
+
+class BlockStoreManager {
+	static std::unordered_map<size_t, std::unique_ptr<IBlockStore>> stores;
+
+	BlockStoreManager() = delete;
+
+public:
+	static IBlockStore& instance(size_t blockSize);
+
+	// TODO method for capping capacity
 };
 
 // minimal block alignment is 4
@@ -104,6 +117,7 @@ public:
 	void load(void* v) override;
 	void store(const void* v) override;
 	size_t blockSize() override;
+
 };
 
 class BlockGuardImpl : public BlockGuard {

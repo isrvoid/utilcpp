@@ -221,4 +221,9 @@ TEST_F(AtomicBlockStoreTest, SettingCapacityBelowLengthThrows) {
 	ASSERT_THROW(store.setCapacity(0), length_error);
 }
 
+TEST(BlockStoreManager, GetStore) {
+	auto& store = BlockStoreManager::instance(64);
+	//ASSERT_EQ(64, store.blockSize()); FIXME
+}
+
 } // namespace

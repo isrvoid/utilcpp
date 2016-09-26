@@ -7,6 +7,12 @@
 
 namespace util {
 
+IBlockStore& BlockStoreManager::instance(size_t) {
+	// FIXME
+	static AtomicBlockStore temp;
+	return temp;
+}
+
 size_t FakeBlockGuard<0>::blockSize() {
 	return 0;
 }
