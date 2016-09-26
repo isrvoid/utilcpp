@@ -24,62 +24,62 @@ std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize)
 
 std::unordered_map<size_t, std::unique_ptr<IBlockStore>> BlockStoreManager::stores;
 
-size_t FakeBlockGuard<0>::blockSize() {
+size_t FakeBlockGuard<0>::blockSize() noexcept {
 	return 0;
 }
 
-void FakeBlockGuard<0>::load(void*) {
+void FakeBlockGuard<0>::load(void*) noexcept {
 }
 
-void FakeBlockGuard<0>::store(const void*) {
+void FakeBlockGuard<0>::store(const void*) noexcept {
 }
 
-size_t FakeBlockGuard<1>::blockSize() {
+size_t FakeBlockGuard<1>::blockSize() noexcept {
 	return 1;
 }
 
-void FakeBlockGuard<1>::load(void* v) {
+void FakeBlockGuard<1>::load(void* v) noexcept {
 	*static_cast<uint8_t*>(v) = key;
 }
 
-void FakeBlockGuard<1>::store(const void* v) {
+void FakeBlockGuard<1>::store(const void* v) noexcept {
 	key = *static_cast<const uint8_t*>(v);
 }
 
-size_t FakeBlockGuard<2>::blockSize() {
+size_t FakeBlockGuard<2>::blockSize() noexcept {
 	return 2;
 }
 
-void FakeBlockGuard<2>::load(void* v) {
+void FakeBlockGuard<2>::load(void* v) noexcept {
 	*static_cast<uint16_t*>(v) = key;
 }
 
-void FakeBlockGuard<2>::store(const void* v) {
+void FakeBlockGuard<2>::store(const void* v) noexcept {
 	key = *static_cast<const uint16_t*>(v);
 }
 
-size_t FakeBlockGuard<4>::blockSize() {
+size_t FakeBlockGuard<4>::blockSize() noexcept {
 	return 4;
 }
 
-void FakeBlockGuard<4>::load(void* v) {
+void FakeBlockGuard<4>::load(void* v) noexcept {
 	*static_cast<uint32_t*>(v) = key;
 }
 
-void FakeBlockGuard<4>::store(const void* v) {
+void FakeBlockGuard<4>::store(const void* v) noexcept {
 	key = *static_cast<const uint32_t*>(v);
 }
 
 #ifdef _LP64
-size_t FakeBlockGuard<8>::blockSize() {
+size_t FakeBlockGuard<8>::blockSize() noexcept {
 	return 8;
 }
 
-void FakeBlockGuard<8>::load(void* v) {
+void FakeBlockGuard<8>::load(void* v) noexcept {
 	*static_cast<uint64_t*>(v) = key;
 }
 
-void FakeBlockGuard<8>::store(const void* v) {
+void FakeBlockGuard<8>::store(const void* v) noexcept {
 	key = *static_cast<const uint64_t*>(v);
 }
 #endif

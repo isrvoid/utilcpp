@@ -104,39 +104,39 @@ public:
 
 // FIXME rename FakeBlockGuard
 template<size_t block_size>
-class FakeBlockGuard {
+class FakeBlockGuard : public BlockGuard {
 };
 
 template<>
 class FakeBlockGuard<0> : public BlockGuard {
 public:
-	void load(void* v) override;
-	void store(const void* v) override;
-	size_t blockSize() override;
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 };
 
 template<>
 class FakeBlockGuard<1> : public BlockGuard {
 public:
-	void load(void* v) override;
-	void store(const void* v) override;
-	size_t blockSize() override;
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 };
 
 template<>
 class FakeBlockGuard<2> : public BlockGuard {
 public:
-	void load(void* v) override;
-	void store(const void* v) override;
-	size_t blockSize() override;
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 };
 
 template<>
 class FakeBlockGuard<4> : public BlockGuard {
 public:
-	void load(void* v) override;
-	void store(const void* v) override;
-	size_t blockSize() override;
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 
 };
 
@@ -144,12 +144,13 @@ public:
 template<>
 class FakeBlockGuard<8> : public BlockGuard {
 public:
-	void load(void* v) override;
-	void store(const void* v) override;
-	size_t blockSize() override;
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 };
 #endif
 
+// FIXME
 class BlockGuardImpl : public BlockGuard {
 private:
 	IBlockStore* store{};
