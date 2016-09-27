@@ -141,7 +141,6 @@ TEST_F(AtomicBlockStoreTest, BlockSize) {
 	store.blockSize();
 }
 
-// platform dependent
 TEST_F(AtomicBlockStoreTest, BlockSizeIsMaxAtomic) {
 	ASSERT_EQ(sizeof(MaxAtomic), store.blockSize());
 }
@@ -334,8 +333,7 @@ TEST_F(BlockStoreTest, StoreThrowsAtInvalidKey) {
 	ASSERT_THROW(store.store(42, &val), out_of_range);
 }
 
-// freeing would require bookkeeping of allocated blocks -- initial implementation can get by without it
-// TODO delete this test and comment in following tests after implementing freeBlock()
+// TODO same as for AtomicBlockStore above -- delete after implementing freeBlock()
 TEST_F(BlockStoreTest, FreeBlockThrows) {
 	auto key = store.allocBlock();
 	ASSERT_THROW(store.freeBlock(key), logic_error);
@@ -382,9 +380,8 @@ TEST_F(BlockStoreTest, SettingCapacityBelowLengthThrows) {
 }
 
 TEST(BlockStoreManager, GetStore) {
-	// FIXME
-	//auto& store = BlockStoreManager::instance(64);
-	//ASSERT_EQ(64, store.blockSize());
+	auto& store = BlockStoreManager::instance(64);
+	ASSERT_EQ(64, store.blockSize());
 }
 
 } // namespace

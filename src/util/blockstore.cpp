@@ -19,7 +19,7 @@ std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize)
 	if (blockSize == sizeof(MaxAtomic))
 		return std::make_unique<AtomicBlockStore>();
 	else
-		return std::make_unique<AtomicBlockStore>(); // FIXME
+		return std::make_unique<BlockStore>(blockSize);
 }
 
 std::unordered_map<size_t, std::unique_ptr<IBlockStore>> BlockStoreManager::stores;

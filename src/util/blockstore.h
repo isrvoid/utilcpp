@@ -58,8 +58,12 @@ class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityCon
 	void freeMemory() noexcept;
 	void zeroOutFreeTailMemory() noexcept;
 
+	AtomicBlockStore(const AtomicBlockStore&) = delete;
+
 public:
+	AtomicBlockStore() = default;
 	~AtomicBlockStore();
+	AtomicBlockStore(AtomicBlockStore&&) = default;
 
 	size_t blockSize() noexcept override;
 	size_t allocBlock() override;
@@ -82,9 +86,12 @@ class BlockStore : public virtual IBlockStore, public virtual ICapacityControl {
 	void freeMemory() noexcept;
 	void zeroOutFreeTailMemory() noexcept;
 
+	BlockStore(const BlockStore&) = delete;
+
 public:
 	BlockStore(size_t blockSize) noexcept;
 	~BlockStore();
+	BlockStore(BlockStore&&) = default;
 
 	size_t blockSize() noexcept override;
 	size_t allocBlock() override;
