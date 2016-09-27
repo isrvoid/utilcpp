@@ -128,7 +128,7 @@ protected:
 };
 
 TEST_F(PlainBlockGuardTest, BlockSize) {
-	ASSERT_EQ(block.blockSize(), store.blockSize());
+	ASSERT_EQ(store.blockSize(), block.blockSize());
 }
 
 TEST_F(PlainBlockGuardTest, InstantiationGrabsAKey) {
@@ -146,6 +146,41 @@ TEST_F(PlainBlockGuardTest, Load) {
 }
 
 TEST_F(PlainBlockGuardTest, Store) {
+	uint8_t val[blockSize];
+	memset(val, 0x95, blockSize);
+	uint8_t verify[blockSize];
+	block.store(val);
+	block.load(verify);
+	ASSERT_TRUE(equal(val, verify));
+}
+
+class LockingBlockGuardTest : public ::testing::Test {
+protected:
+	static constexpr size_t blockSize = 32;
+	BlockStore store{blockSize};
+	LockingBlockGuard _block{store};
+	BlockGuard& block = _block;
+};
+
+TEST_F(LockingBlockGuardTest, BlockSize) {
+	ASSERT_EQ(store.blockSize(), block.blockSize());
+}
+
+TEST_F(LockingBlockGuardTest, InstantiationGrabsAKey) {
+	ASSERT_EQ(1, store.length());
+	PlainBlockGuard anotherBlock{store};
+	ASSERT_EQ(2, store.length());
+}
+
+TEST_F(LockingBlockGuardTest, Load) {
+	uint8_t val[blockSize];
+	memset(val, 0x95, blockSize);
+	uint8_t init[blockSize]{};
+	block.load(val);
+	ASSERT_TRUE(equal(init, val));
+}
+
+TEST_F(LockingBlockGuardTest, Store) {
 	uint8_t val[blockSize];
 	memset(val, 0x95, blockSize);
 	uint8_t verify[blockSize];

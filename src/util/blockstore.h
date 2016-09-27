@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <memory>
 #include <unordered_map>
+#include <atomic>
 
 namespace util {
 
@@ -173,6 +174,27 @@ private:
 public:
 	PlainBlockGuard(IBlockStore& store);
 	~PlainBlockGuard();
+
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
+};
+
+class LockingBlockGuard : public BlockGuard {
+private:
+	IBlockStore& _store;
+	std::atomic<bool> _lock{}; // mutex is to big to be used instead
+
+	struct LockGuard {
+		std::atomic<bool>& lock;
+
+		LockGuard(std::atomic<bool>& lock);
+		~LockGuard();
+	};
+
+public:
+	LockingBlockGuard(IBlockStore& store);
+	~LockingBlockGuard();
 
 	void load(void* v) noexcept override;
 	void store(const void* v) noexcept override;

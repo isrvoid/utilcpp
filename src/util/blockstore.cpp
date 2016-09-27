@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cassert>
+#include <thread>
 
 namespace util {
 
@@ -106,6 +107,39 @@ void PlainBlockGuard::store(const void* v) noexcept {
 
 size_t PlainBlockGuard::blockSize() noexcept {
 	return _store.blockSize();
+}
+
+LockingBlockGuard::LockingBlockGuard(IBlockStore& store) : _store(store) {
+	key = _store.allocBlock();
+}
+
+LockingBlockGuard::~LockingBlockGuard() {
+	// _store.freeBlock(key); // TODO uncomment after it's implemented
+}
+
+void LockingBlockGuard::load(void* v) noexcept {
+	LockGuard lock(_lock);
+	_store.load(key, v);
+}
+
+void LockingBlockGuard::store(const void* v) noexcept {
+	LockGuard lock(_lock);
+	_store.store(key, v);
+}
+
+size_t LockingBlockGuard::blockSize() noexcept {
+	return _store.blockSize();
+}
+
+LockingBlockGuard::LockGuard::LockGuard(std::atomic<bool>& lock) : lock(lock) {
+	bool expected;
+	while (expected = false, lock.load(std::memory_order_acquire) || !std::atomic_compare_exchange_weak_explicit(&lock, &expected, true, std::memory_order_release, std::memory_order_relaxed)) {
+		std::this_thread::yield();
+	}
+}
+
+LockingBlockGuard::LockGuard::~LockGuard() {
+	lock.store(false, std::memory_order_release);
 }
 
 AtomicBlockStore::~AtomicBlockStore() {
