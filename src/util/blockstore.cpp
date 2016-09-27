@@ -15,6 +15,10 @@ IBlockStore& BlockStoreManager::instance(size_t blockSize) noexcept {
 	return *p;
 }
 
+void BlockStoreManager::deleteAllInstances() noexcept {
+	stores.clear();
+}
+
 std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize) noexcept {
 	if (blockSize == sizeof(MaxAtomic))
 		return std::make_unique<AtomicBlockStore>();

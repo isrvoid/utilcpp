@@ -379,9 +379,22 @@ TEST_F(BlockStoreTest, SettingCapacityBelowLengthThrows) {
 	ASSERT_THROW(store.setCapacity(0), length_error);
 }
 
-TEST(BlockStoreManager, GetStore) {
+class BlockStoreManagerTest : public ::testing::Test {
+protected:
+	~BlockStoreManagerTest() {
+		BlockStoreManager::deleteAllInstances();
+	}
+};
+
+TEST_F(BlockStoreManagerTest, Instance) {
 	auto& store = BlockStoreManager::instance(64);
 	ASSERT_EQ(64, store.blockSize());
+}
+
+TEST_F(BlockStoreManagerTest, SameInstanceIsReturnedForSameCapacity) {
+	auto& store1 = BlockStoreManager::instance(24);
+	auto& store2 = BlockStoreManager::instance(24);
+	ASSERT_EQ(&store1, &store2);
 }
 
 } // namespace

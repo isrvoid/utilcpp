@@ -38,6 +38,7 @@ class BlockStoreManager {
 public:
 	static IBlockStore& instance(size_t blockSize) noexcept;
 
+	static void deleteAllInstances() noexcept; // for unittest
 	// TODO method to cap capacity
 };
 
