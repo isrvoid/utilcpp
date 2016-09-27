@@ -194,13 +194,20 @@ public:
 class LockingBlockGuard : public BlockGuard {
 private:
 	IBlockStore& _store;
-	std::atomic<bool> _lock{}; // mutex is to big to be used instead
+	std::atomic<uint8_t> _lock{}; // mutex is to big to be used here
 
-	struct LockGuard {
-		std::atomic<bool>& lock;
+	struct LockGuardLoad {
+		std::atomic<uint8_t>& lock;
 
-		LockGuard(std::atomic<bool>& lock);
-		~LockGuard();
+		LockGuardLoad(std::atomic<uint8_t>& lock) noexcept;
+		~LockGuardLoad();
+	};
+
+	struct LockGuardStore {
+		std::atomic<uint8_t>& lock;
+
+		LockGuardStore(std::atomic<uint8_t>& lock) noexcept;
+		~LockGuardStore();
 	};
 
 public:
