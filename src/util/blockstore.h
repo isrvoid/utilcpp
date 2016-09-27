@@ -166,14 +166,17 @@ public:
 };
 #endif
 
-// FIXME
-class BlockGuardImpl : public BlockGuard {
+class PlainBlockGuard : public BlockGuard {
 private:
-	IBlockStore* store{};
+	IBlockStore& _store;
 
 public:
-	BlockGuardImpl(IBlockStore* store);
-	~BlockGuardImpl();
+	PlainBlockGuard(IBlockStore& store);
+	~PlainBlockGuard();
+
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
 };
 
 } // namespace util

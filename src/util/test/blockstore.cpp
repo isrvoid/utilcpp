@@ -114,12 +114,56 @@ TEST_F(FakeBlockGuardTest, Store8) {
 }
 #endif
 
+template<typename T, size_t Length>
+bool equal(const T(&lhs)[Length], const T(&rhs)[Length]) {
+	return !memcmp(lhs, rhs, sizeof(T) * Length);
+}
+
+class PlainBlockGuardTest : public ::testing::Test {
+protected:
+	static constexpr size_t blockSize = sizeof(MaxAtomic);
+	AtomicBlockStore store;
+	PlainBlockGuard _block{store};
+	BlockGuard& block = _block;
+};
+
+TEST_F(PlainBlockGuardTest, BlockSize) {
+	ASSERT_EQ(block.blockSize(), store.blockSize());
+}
+
+TEST_F(PlainBlockGuardTest, InstantiationGrabsAKey) {
+	ASSERT_EQ(1, store.length());
+	PlainBlockGuard anotherBlock{store};
+	ASSERT_EQ(2, store.length());
+}
+
+TEST_F(PlainBlockGuardTest, Load) {
+	uint8_t val[blockSize];
+	memset(val, 0x95, blockSize);
+	uint8_t init[blockSize]{};
+	block.load(val);
+	ASSERT_TRUE(equal(init, val));
+}
+
+TEST_F(PlainBlockGuardTest, Store) {
+	uint8_t val[blockSize];
+	memset(val, 0x95, blockSize);
+	uint8_t verify[blockSize];
+	block.store(val);
+	block.load(verify);
+	ASSERT_TRUE(equal(val, verify));
+}
+
+bool operator==(const MaxAtomic& lhs, const MaxAtomic& rhs) {
+	return !memcmp(&lhs, &rhs, sizeof(lhs));
+}
+
 TEST(MaxAtomicTest, AssignmentAffectsAllBytes) {
 	// more of a sanity check
 	MaxAtomic expected, v;
 	memset(&expected, 0x5a, sizeof(expected));
 	v = expected;
-	ASSERT_EQ(0, memcmp(&expected, &v, sizeof(expected)));
+	ASSERT_EQ(expected, v);
 }
 
 // platform dependent -- relevant for lock free operations on shared_ptr for example
@@ -169,10 +213,6 @@ protected:
 		key2 = store.allocBlock();
 	}
 };
-
-bool operator==(const MaxAtomic& lhs, const MaxAtomic& rhs) {
-	return !memcmp(&lhs, &rhs, sizeof(lhs));
-}
 
 TEST_F(AtomicBlockStoreTest2, InitValue) {
 	const MaxAtomic init{};
@@ -300,9 +340,9 @@ TEST_F(BlockStoreTest2, InitValue) {
 	uint32_t val[blockSize / 4];
 
 	store.load(key1, &val);
-	ASSERT_EQ(0, memcmp(init, val, blockSize));
+	ASSERT_TRUE(equal(init, val));
 	store.load(key2, &val);
-	ASSERT_EQ(0, memcmp(init, val, blockSize));
+	ASSERT_TRUE(equal(init, val));
 }
 
 TEST_F(BlockStoreTest2, Store) {
@@ -315,10 +355,10 @@ TEST_F(BlockStoreTest2, Store) {
 	store.store(key2, &test2);
 
 	store.load(key1, &val);
-	ASSERT_EQ(0, memcmp(test1, val, sizeof(test1)));
+	ASSERT_TRUE(equal(test1, val));
 
 	store.load(key2, &val);
-	ASSERT_EQ(0, memcmp(test2, val, sizeof(test2)));
+	ASSERT_TRUE(equal(test2, val));
 }
 
 TEST_F(BlockStoreTest, LoadThrowsAtInvalidKey) {
@@ -396,5 +436,7 @@ TEST_F(BlockStoreManagerTest, SameInstanceIsReturnedForSameCapacity) {
 	auto& store2 = BlockStoreManager::instance(24);
 	ASSERT_EQ(&store1, &store2);
 }
+
+// TODO cap capacity test
 
 } // namespace
