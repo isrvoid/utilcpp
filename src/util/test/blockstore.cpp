@@ -4,6 +4,8 @@
 #include <memory>
 #include <atomic>
 #include <cstring>
+#include <array>
+#include <algorithm>
 
 #include <util/blockstore.h>
 
@@ -472,6 +474,29 @@ TEST_F(BlockStoreManagerTest, SameInstanceIsReturnedForSameCapacity) {
 	ASSERT_EQ(&store1, &store2);
 }
 
-// TODO cap capacity test
+TEST_F(BlockStoreManagerTest, InstancesCanBeIterated) {
+	BlockStoreManager::instance(16);
+	BlockStoreManager::instance(24);
+	BlockStoreManager::instance(32);
+
+	array<size_t, 3> blockSizes;
+	int i{};
+	for (IBlockStore& store : BlockStoreManager())
+		blockSizes[i++] = store.blockSize();
+
+	ASSERT_EQ(3, i);
+
+	sort(blockSizes.begin(), blockSizes.end());
+	ASSERT_EQ(16, blockSizes[0]);
+	ASSERT_EQ(24, blockSizes[1]);
+	ASSERT_EQ(32, blockSizes[2]);
+}
+
+TEST_F(BlockStoreManagerTest, CapacityCanBeReachedViaIterator) {
+	BlockStoreManager::instance(16).allocBlock();
+	IBlockStore& store = *BlockStoreManager::begin();
+	auto& cap = dynamic_cast<ICapacityControl&>(store);
+	ASSERT_LE(0, cap.capacity());
+}
 
 } // namespace

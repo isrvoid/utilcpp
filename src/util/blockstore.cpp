@@ -29,6 +29,20 @@ std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize)
 
 std::unordered_map<size_t, std::unique_ptr<IBlockStore>> BlockStoreManager::stores;
 
+BlockStoreManager::iterator::iterator(const decltype(it)& it) noexcept : it(it) { }
+
+bool BlockStoreManager::iterator::operator!=(const iterator& other) const noexcept {
+	return it != other.it;
+}
+
+BlockStoreManager::iterator& BlockStoreManager::iterator::operator++() noexcept {
+	++it; return *this;
+}
+
+BlockStoreManager::iterator::reference BlockStoreManager::iterator::operator*() const noexcept {
+	return *it->second;
+}
+
 size_t FakeBlockGuard<0>::blockSize() noexcept {
 	return 0;
 }

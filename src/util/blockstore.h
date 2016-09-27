@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <atomic>
+#include <iterator>
 
 namespace util {
 
@@ -32,15 +33,25 @@ public:
 class BlockStoreManager {
 	static std::unordered_map<size_t, std::unique_ptr<IBlockStore>> stores;
 
-	BlockStoreManager() = delete;
-
 	static std::unique_ptr<IBlockStore> createInstance(size_t blockSize) noexcept;
 
 public:
 	static IBlockStore& instance(size_t blockSize) noexcept;
 
 	static void deleteAllInstances() noexcept; // for unittest
-	// TODO method to cap capacity
+
+	class iterator : public std::iterator<std::forward_iterator_tag, IBlockStore> {
+		decltype(stores.begin()) it;
+
+	public:
+		explicit iterator(const decltype(it)& it) noexcept;
+		bool operator!=(const iterator& other) const noexcept;
+		iterator& operator++() noexcept;
+		reference operator*() const noexcept;
+	};
+
+	static iterator begin() { return iterator(stores.begin()); }
+	static iterator end() { return iterator(stores.end()); }
 };
 
 // this only works for machines that can set values of size 2*sizeof(void*) atomically (e.g. armv7a, x86 MMX)
