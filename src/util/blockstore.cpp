@@ -58,7 +58,7 @@ size_t FakeBlockGuard<1>::blockSize() noexcept {
 }
 
 void FakeBlockGuard<1>::load(void* v) noexcept {
-	*static_cast<uint8_t*>(v) = key;
+	*static_cast<uint8_t*>(v) = static_cast<uint8_t>(key);
 }
 
 void FakeBlockGuard<1>::store(const void* v) noexcept {
@@ -70,7 +70,7 @@ size_t FakeBlockGuard<2>::blockSize() noexcept {
 }
 
 void FakeBlockGuard<2>::load(void* v) noexcept {
-	*static_cast<uint16_t*>(v) = key;
+	*static_cast<uint16_t*>(v) = static_cast<uint16_t>(key);
 }
 
 void FakeBlockGuard<2>::store(const void* v) noexcept {
@@ -82,7 +82,7 @@ size_t FakeBlockGuard<4>::blockSize() noexcept {
 }
 
 void FakeBlockGuard<4>::load(void* v) noexcept {
-	*static_cast<uint32_t*>(v) = key;
+	*static_cast<uint32_t*>(v) = static_cast<uint32_t>(key);
 }
 
 void FakeBlockGuard<4>::store(const void* v) noexcept {
