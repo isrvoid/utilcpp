@@ -277,18 +277,6 @@ TEST_F(AtomicBlockStoreTest2, Store) {
 	ASSERT_EQ(test2, val);
 }
 
-TEST_F(AtomicBlockStoreTest, LoadThrowsAtInvalidKey) {
-	MaxAtomic val;
-	ASSERT_THROW(store.load(0, &val), out_of_range);
-	ASSERT_THROW(store.load(42, &val), out_of_range);
-}
-
-TEST_F(AtomicBlockStoreTest, StoreThrowsAtInvalidKey) {
-	MaxAtomic val;
-	ASSERT_THROW(store.store(0, &val), out_of_range);
-	ASSERT_THROW(store.store(42, &val), out_of_range);
-}
-
 // freeing would require bookkeeping of allocated blocks -- initial implementation can get by without it
 // TODO delete this test and comment in following tests after implementing freeBlock()
 TEST_F(AtomicBlockStoreTest, FreeBlockThrows) {
@@ -396,18 +384,6 @@ TEST_F(BlockStoreTest2, Store) {
 
 	store.load(key2, &val);
 	ASSERT_TRUE(equal(test2, val));
-}
-
-TEST_F(BlockStoreTest, LoadThrowsAtInvalidKey) {
-	uint8_t val[blockSize];
-	ASSERT_THROW(store.load(0, &val), out_of_range);
-	ASSERT_THROW(store.load(42, &val), out_of_range);
-}
-
-TEST_F(BlockStoreTest, StoreThrowsAtInvalidKey) {
-	uint8_t val[blockSize];
-	ASSERT_THROW(store.store(0, &val), out_of_range);
-	ASSERT_THROW(store.store(42, &val), out_of_range);
 }
 
 // TODO same as for AtomicBlockStore above -- delete after implementing freeBlock()

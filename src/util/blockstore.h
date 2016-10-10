@@ -81,8 +81,8 @@ public:
 	size_t blockSize() noexcept override;
 	size_t allocBlock() override;
 	void freeBlock(size_t key) override;
-	void load(size_t key, void* v) override;
-	void store(size_t key, const void* v) override;
+	void load(size_t key, void* v) noexcept override;
+	void store(size_t key, const void* v) noexcept override;
 
 	size_t length() noexcept override;
 	size_t capacity() noexcept override;
@@ -109,8 +109,8 @@ public:
 	size_t blockSize() noexcept override;
 	size_t allocBlock() override;
 	void freeBlock(size_t key) override;
-	void load(size_t key, void* v) override;
-	void store(size_t key, const void* v) override;
+	void load(size_t key, void* v) noexcept override;
+	void store(size_t key, const void* v) noexcept override;
 
 	size_t length() noexcept override;
 	size_t capacity() noexcept override;

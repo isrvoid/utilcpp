@@ -187,17 +187,13 @@ void AtomicBlockStore::freeBlock(size_t) {
 	throw std::logic_error("not implemented");
 }
 
-void AtomicBlockStore::load(size_t key, void* v) {
-	if (key >= _length)
-		throw std::out_of_range("Invalid key");
-
+void AtomicBlockStore::load(size_t key, void* v) noexcept {
+	assert(key < _length);
 	*static_cast<MaxAtomic*>(v) = static_cast<MaxAtomic*>(mem)[key];
 }
 
-void AtomicBlockStore::store(size_t key, const void* v) {
-	if (key >= _length)
-		throw std::out_of_range("Invalid key");
-
+void AtomicBlockStore::store(size_t key, const void* v) noexcept {
+	assert(key < _length);
 	static_cast<MaxAtomic*>(mem)[key] = *static_cast<const MaxAtomic*>(v);
 }
 
@@ -263,17 +259,13 @@ void BlockStore::freeBlock(size_t) {
 	throw std::logic_error("not implemented");
 }
 
-void BlockStore::load(size_t key, void* v) {
-	if (key >= _length)
-		throw std::out_of_range("Invalid key");
-
+void BlockStore::load(size_t key, void* v) noexcept {
+	assert(key < _length);
 	memcpy(v, static_cast<uint8_t*>(mem) + _blockSize * key, _blockSize);
 }
 
-void BlockStore::store(size_t key, const void* v) {
-	if (key >= _length)
-		throw std::out_of_range("Invalid key");
-
+void BlockStore::store(size_t key, const void* v) noexcept {
+	assert(key < _length);
 	memcpy(static_cast<uint8_t*>(mem) + _blockSize * key, v, _blockSize);
 }
 
