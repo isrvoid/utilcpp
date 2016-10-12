@@ -450,7 +450,7 @@ TEST_F(BlockStoreManagerTest, SameInstanceIsReturnedForSameCapacity) {
 	ASSERT_EQ(&store1, &store2);
 }
 
-TEST_F(BlockStoreManagerTest, InstancesCanBeIterated) {
+TEST_F(BlockStoreManagerTest, InstancesAreIterable) {
 	BlockStoreManager::instance(16);
 	BlockStoreManager::instance(24);
 	BlockStoreManager::instance(32);

@@ -50,8 +50,8 @@ public:
 		reference operator*() const noexcept;
 	};
 
-	static iterator begin() { return iterator(stores.begin()); }
-	static iterator end() { return iterator(stores.end()); }
+	static iterator begin() noexcept;
+	static iterator end() noexcept;
 };
 
 // this only works for machines that can set values of size 2*sizeof(void*) atomically (e.g. armv7a, x86 MMX)

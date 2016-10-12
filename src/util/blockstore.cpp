@@ -43,6 +43,9 @@ BlockStoreManager::iterator::reference BlockStoreManager::iterator::operator*() 
 	return *it->second;
 }
 
+BlockStoreManager::iterator BlockStoreManager::begin() noexcept { return iterator(stores.begin()); }
+BlockStoreManager::iterator BlockStoreManager::end() noexcept { return iterator(stores.end()); }
+
 size_t FakeBlockGuard<0>::blockSize() noexcept {
 	return 0;
 }
