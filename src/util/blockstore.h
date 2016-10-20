@@ -178,13 +178,13 @@ public:
 };
 #endif
 
-class PlainBlockGuard : public BlockGuard {
+class AtomicBlockGuard : public BlockGuard {
 private:
 	AtomicBlockStore& _store;
 
 public:
-	PlainBlockGuard(AtomicBlockStore& store);
-	~PlainBlockGuard();
+	AtomicBlockGuard(AtomicBlockStore& store);
+	~AtomicBlockGuard();
 
 	void load(void* v) noexcept override;
 	void store(const void* v) noexcept override;

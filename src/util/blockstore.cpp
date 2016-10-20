@@ -111,23 +111,23 @@ void FakeBlockGuard<8>::store(const void* v) noexcept {
 }
 #endif
 
-PlainBlockGuard::PlainBlockGuard(AtomicBlockStore& store) : _store(store) {
+AtomicBlockGuard::AtomicBlockGuard(AtomicBlockStore& store) : _store(store) {
 	key = _store.allocBlock();
 }
 
-PlainBlockGuard::~PlainBlockGuard() {
+AtomicBlockGuard::~AtomicBlockGuard() {
 	// _store.freeBlock(key); // TODO uncomment after it's implemented
 }
 
-void PlainBlockGuard::load(void* v) noexcept {
+void AtomicBlockGuard::load(void* v) noexcept {
 	_store.load(key, v);
 }
 
-void PlainBlockGuard::store(const void* v) noexcept {
+void AtomicBlockGuard::store(const void* v) noexcept {
 	_store.store(key, v);
 }
 
-size_t PlainBlockGuard::blockSize() noexcept {
+size_t AtomicBlockGuard::blockSize() noexcept {
 	return _store.blockSize();
 }
 

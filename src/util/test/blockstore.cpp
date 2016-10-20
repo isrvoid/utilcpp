@@ -125,7 +125,7 @@ class PlainBlockGuardTest : public ::testing::Test {
 protected:
 	static constexpr size_t blockSize = sizeof(MaxAtomic);
 	AtomicBlockStore store;
-	PlainBlockGuard _block{store};
+	AtomicBlockGuard _block{store};
 	BlockGuard& block = _block;
 };
 
@@ -135,7 +135,7 @@ TEST_F(PlainBlockGuardTest, BlockSize) {
 
 TEST_F(PlainBlockGuardTest, InstantiationGrabsAKey) {
 	ASSERT_EQ(1, store.length());
-	PlainBlockGuard anotherBlock{store};
+	AtomicBlockGuard anotherBlock{store};
 	ASSERT_EQ(2, store.length());
 }
 
