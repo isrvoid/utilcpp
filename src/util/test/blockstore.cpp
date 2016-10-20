@@ -170,7 +170,7 @@ TEST_F(LockingBlockGuardTest, BlockSize) {
 
 TEST_F(LockingBlockGuardTest, InstantiationGrabsAKey) {
 	ASSERT_EQ(1, store.length());
-	PlainBlockGuard anotherBlock{store};
+	LockingBlockGuard anotherBlock{store};
 	ASSERT_EQ(2, store.length());
 }
 

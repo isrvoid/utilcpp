@@ -63,10 +63,9 @@ struct MaxAtomicForPointerSize {
 using MaxAtomic = MaxAtomicForPointerSize<sizeof(void*)>;
 
 class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityControl {
-	void* mem{};
 	size_t _length{};
 	size_t _capacity{};
-	static constexpr size_t _blockSize = 2 * sizeof(void*);
+	static constexpr size_t _blockSize = sizeof(MaxAtomic);
 
 	void freeMemory() noexcept;
 	void zeroOutFreeTailMemory() noexcept;
@@ -74,6 +73,7 @@ class AtomicBlockStore : public virtual IBlockStore, public virtual ICapacityCon
 	AtomicBlockStore(const AtomicBlockStore&) = delete;
 
 public:
+	void* mem{};
 	AtomicBlockStore() = default;
 	~AtomicBlockStore();
 	AtomicBlockStore(AtomicBlockStore&&) = default;
@@ -180,10 +180,10 @@ public:
 
 class PlainBlockGuard : public BlockGuard {
 private:
-	IBlockStore& _store;
+	AtomicBlockStore& _store;
 
 public:
-	PlainBlockGuard(IBlockStore& store);
+	PlainBlockGuard(AtomicBlockStore& store);
 	~PlainBlockGuard();
 
 	void load(void* v) noexcept override;
