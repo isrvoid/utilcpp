@@ -121,7 +121,7 @@ bool equal(const T(&lhs)[Length], const T(&rhs)[Length]) {
 	return !memcmp(lhs, rhs, sizeof(T) * Length);
 }
 
-class PlainBlockGuardTest : public ::testing::Test {
+class AtomicBlockGuardTest : public ::testing::Test {
 protected:
 	static constexpr size_t blockSize = sizeof(MaxAtomic);
 	AtomicBlockStore store;
@@ -129,17 +129,17 @@ protected:
 	BlockGuard& block = _block;
 };
 
-TEST_F(PlainBlockGuardTest, BlockSize) {
+TEST_F(AtomicBlockGuardTest, BlockSize) {
 	ASSERT_EQ(store.blockSize(), block.blockSize());
 }
 
-TEST_F(PlainBlockGuardTest, InstantiationGrabsAKey) {
+TEST_F(AtomicBlockGuardTest, InstantiationGrabsAKey) {
 	ASSERT_EQ(1, store.length());
 	AtomicBlockGuard anotherBlock{store};
 	ASSERT_EQ(2, store.length());
 }
 
-TEST_F(PlainBlockGuardTest, Load) {
+TEST_F(AtomicBlockGuardTest, Load) {
 	uint8_t val[blockSize];
 	memset(val, 0x95, blockSize);
 	uint8_t init[blockSize]{};
@@ -147,7 +147,7 @@ TEST_F(PlainBlockGuardTest, Load) {
 	ASSERT_TRUE(equal(init, val));
 }
 
-TEST_F(PlainBlockGuardTest, Store) {
+TEST_F(AtomicBlockGuardTest, Store) {
 	uint8_t val[blockSize];
 	memset(val, 0x95, blockSize);
 	uint8_t verify[blockSize];
@@ -189,6 +189,76 @@ TEST_F(LockingBlockGuardTest, Store) {
 	block.store(val);
 	block.load(verify);
 	ASSERT_TRUE(equal(val, verify));
+}
+
+class SharedPtrBlockGuardTest : public ::testing::Test {
+protected:
+	static constexpr size_t blockSize = sizeof(MaxAtomic);
+	AtomicBlockStore store;
+	SharedPtrBlockGuard _block{store};
+	BlockGuard& block = _block;
+};
+
+TEST_F(SharedPtrBlockGuardTest, BlockSize) {
+	ASSERT_EQ(sizeof(shared_ptr<int>), block.blockSize());
+}
+
+TEST_F(SharedPtrBlockGuardTest, InstantiationGrabsAKey) {
+	ASSERT_EQ(1, store.length());
+	AtomicBlockGuard anotherBlock{store};
+	ASSERT_EQ(2, store.length());
+}
+
+TEST_F(SharedPtrBlockGuardTest, StoreAndLoadKeepsObjectsAddress) {
+	auto p = make_shared<double>(42.42);
+	auto addr = p.get();
+	block.store(&p);
+	shared_ptr<double> verify;
+	block.load(&verify);
+	ASSERT_EQ(addr, verify.get());
+}
+
+TEST_F(SharedPtrBlockGuardTest, PtrIsZeroedOutInitially) {
+	shared_ptr<int> p;
+	block.load(&p);
+	ASSERT_EQ(nullptr, p.get());
+	ASSERT_EQ(0, p.use_count());
+}
+
+TEST_F(SharedPtrBlockGuardTest, StoreClaimsSharedOwnership) {
+	auto p = make_shared<int>(42);
+	block.store(&p);
+	ASSERT_EQ(2, p.use_count());
+}
+
+TEST_F(SharedPtrBlockGuardTest, StoreDecrementsUseCountOfPreviousPtr) {
+	auto p = make_shared<double>();
+	auto p2 = make_shared<double>();
+	block.store(&p);
+	block.store(&p2);
+	ASSERT_EQ(1, p.use_count());
+}
+
+TEST_F(SharedPtrBlockGuardTest, LoadIncrementsUseCountOfStoredPtr) {
+	auto p = make_shared<double>();
+	block.store(&p);
+	shared_ptr<double> load;
+	block.load(&load);
+	ASSERT_EQ(3, p.use_count());
+
+	shared_ptr<double> load2;
+	block.load(&load2);
+	ASSERT_EQ(4, load2.use_count());
+}
+
+TEST(SharedPtrBlockGuardTest2, DestructionDecrementsUseCountOfStoredPtr) {
+	auto p = make_shared<double>(0.123);
+	AtomicBlockStore store;
+	{
+		SharedPtrBlockGuard guard{store};
+		guard.store(&p);
+	}
+	ASSERT_EQ(1, p.use_count());
 }
 
 bool operator==(const MaxAtomic& lhs, const MaxAtomic& rhs) {

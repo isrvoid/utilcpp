@@ -130,7 +130,6 @@ public:
 	virtual void store(const void* v) = 0;
 };
 
-// FIXME rename FakeBlockGuard
 template<size_t block_size>
 class FakeBlockGuard : public BlockGuard {
 };
@@ -214,6 +213,23 @@ public:
 	LockingBlockGuard(IBlockStore& store);
 	~LockingBlockGuard();
 
+	void load(void* v) noexcept override;
+	void store(const void* v) noexcept override;
+	size_t blockSize() noexcept override;
+};
+
+// for the destructor to work SharedPtrBlockGuard should have exclusive ownership
+// over its block within the store
+class SharedPtrBlockGuard : public BlockGuard {
+private:
+	AtomicBlockStore& _store;
+
+public:
+	SharedPtrBlockGuard(AtomicBlockStore& store);
+	~SharedPtrBlockGuard();
+
+	// load should be used carefully
+	// it increments use_count and can lead to memory never being freed
 	void load(void* v) noexcept override;
 	void store(const void* v) noexcept override;
 	size_t blockSize() noexcept override;

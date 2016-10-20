@@ -112,6 +112,7 @@ void FakeBlockGuard<8>::store(const void* v) noexcept {
 #endif
 
 AtomicBlockGuard::AtomicBlockGuard(AtomicBlockStore& store) : _store(store) {
+	assert(store.blockSize() == sizeof(MaxAtomic));
 	key = _store.allocBlock();
 }
 
@@ -128,7 +129,7 @@ void AtomicBlockGuard::store(const void* v) noexcept {
 }
 
 size_t AtomicBlockGuard::blockSize() noexcept {
-	return _store.blockSize();
+	return sizeof(MaxAtomic);
 }
 
 LockingBlockGuard::LockingBlockGuard(IBlockStore& store) : _store(store) {
@@ -174,6 +175,29 @@ LockingBlockGuard::LockGuardStore::LockGuardStore(std::atomic<uint8_t>& lock) no
 
 LockingBlockGuard::LockGuardStore::~LockGuardStore() {
 	lock.store(0, std::memory_order_release);
+}
+
+SharedPtrBlockGuard::SharedPtrBlockGuard(AtomicBlockStore& store) : _store(store) {
+	assert(store.blockSize() == sizeof(MaxAtomic));
+	key = _store.allocBlock();
+}
+
+SharedPtrBlockGuard::~SharedPtrBlockGuard() {
+	std::shared_ptr<size_t> init;
+	static_cast<std::shared_ptr<size_t>*>(_store.mem)[key] = init;
+	// _store.freeBlock(key); // TODO uncomment after it's implemented
+}
+
+void SharedPtrBlockGuard::load(void* v) noexcept {
+	*static_cast<std::shared_ptr<size_t>*>(v) = static_cast<std::shared_ptr<size_t>*>(_store.mem)[key];
+}
+
+void SharedPtrBlockGuard::store(const void* v) noexcept {
+	static_cast<std::shared_ptr<size_t>*>(_store.mem)[key] = *static_cast<const std::shared_ptr<size_t>*>(v);
+}
+
+size_t SharedPtrBlockGuard::blockSize() noexcept {
+	return sizeof(MaxAtomic);
 }
 
 AtomicBlockStore::~AtomicBlockStore() {
