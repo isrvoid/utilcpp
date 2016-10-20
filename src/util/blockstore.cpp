@@ -120,11 +120,11 @@ AtomicBlockGuard::~AtomicBlockGuard() {
 }
 
 void AtomicBlockGuard::load(void* v) noexcept {
-	_store.load(key, v);
+	*static_cast<MaxAtomic*>(v) = static_cast<MaxAtomic*>(_store.mem)[key];
 }
 
 void AtomicBlockGuard::store(const void* v) noexcept {
-	_store.store(key, v);
+	static_cast<MaxAtomic*>(_store.mem)[key] = *static_cast<const MaxAtomic*>(v);
 }
 
 size_t AtomicBlockGuard::blockSize() noexcept {
