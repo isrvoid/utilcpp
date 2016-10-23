@@ -6,6 +6,8 @@
 #include <cassert>
 #include <thread>
 
+using namespace std;
+
 namespace util {
 
 IBlockStore& BlockStoreManager::instance(size_t blockSize) noexcept {
@@ -20,14 +22,14 @@ void BlockStoreManager::deleteAllInstances() noexcept {
 	stores.clear();
 }
 
-std::unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize) noexcept {
+unique_ptr<IBlockStore> BlockStoreManager::createInstance(size_t blockSize) noexcept {
 	if (blockSize == sizeof(MaxAtomic))
-		return std::make_unique<AtomicBlockStore>();
+		return make_unique<AtomicBlockStore>();
 	else
-		return std::make_unique<BlockStore>(blockSize);
+		return make_unique<BlockStore>(blockSize);
 }
 
-std::unordered_map<size_t, std::unique_ptr<IBlockStore>> BlockStoreManager::stores;
+unordered_map<size_t, unique_ptr<IBlockStore>> BlockStoreManager::stores;
 
 BlockStoreManager::iterator::iterator(const decltype(it)& it) noexcept : it(it) { }
 
@@ -154,27 +156,32 @@ size_t LockingBlockGuard::blockSize() noexcept {
 	return _store.blockSize();
 }
 
-LockingBlockGuard::LockGuardLoad::LockGuardLoad(std::atomic<uint8_t>& lock) noexcept : lock(lock) {
+LockingBlockGuard::LockGuardLoad::LockGuardLoad(atomic<uint8_t>& lock) noexcept : lock(lock) {
 	uint8_t expected;
-	while (expected = lock.load(std::memory_order_acquire) & 7, !std::atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(expected + 1), std::memory_order_release, std::memory_order_relaxed)) {
-		std::this_thread::yield();
+	while (expected = lock.load(memory_order_acquire) & 7,
+			!atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(expected + 1),
+				memory_order_release, memory_order_relaxed)) {
+		this_thread::yield();
 	}
 }
 
 LockingBlockGuard::LockGuardLoad::~LockGuardLoad() {
 	uint8_t expected;
-	while (expected = lock.load(std::memory_order_acquire), !std::atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(expected - 1), std::memory_order_release, std::memory_order_relaxed)) { }
+	while (expected = lock.load(memory_order_acquire),
+			!atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(expected - 1),
+				memory_order_release, memory_order_relaxed)) { }
 }
 
-LockingBlockGuard::LockGuardStore::LockGuardStore(std::atomic<uint8_t>& lock) noexcept : lock(lock) {
+LockingBlockGuard::LockGuardStore::LockGuardStore(atomic<uint8_t>& lock) noexcept : lock(lock) {
 	uint8_t expected;
-	while (expected = 0, !std::atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(0x80), std::memory_order_release, std::memory_order_relaxed)) {
-		std::this_thread::yield();
+	while (expected = 0, !atomic_compare_exchange_weak_explicit(&lock, &expected, static_cast<uint8_t>(0x80),
+				memory_order_release, memory_order_relaxed)) {
+		this_thread::yield();
 	}
 }
 
 LockingBlockGuard::LockGuardStore::~LockGuardStore() {
-	lock.store(0, std::memory_order_release);
+	lock.store(0, memory_order_release);
 }
 
 SharedPtrBlockGuard::SharedPtrBlockGuard(AtomicBlockStore& store) : _store(store) {
@@ -183,17 +190,17 @@ SharedPtrBlockGuard::SharedPtrBlockGuard(AtomicBlockStore& store) : _store(store
 }
 
 SharedPtrBlockGuard::~SharedPtrBlockGuard() {
-	std::shared_ptr<size_t> init;
-	static_cast<std::shared_ptr<size_t>*>(_store.mem)[key] = init;
+	shared_ptr<size_t> init;
+	static_cast<shared_ptr<size_t>*>(_store.mem)[key] = init;
 	// _store.freeBlock(key); // TODO uncomment after it's implemented
 }
 
 void SharedPtrBlockGuard::load(void* v) noexcept {
-	*static_cast<std::shared_ptr<size_t>*>(v) = static_cast<std::shared_ptr<size_t>*>(_store.mem)[key];
+	*static_cast<shared_ptr<size_t>*>(v) = static_cast<shared_ptr<size_t>*>(_store.mem)[key];
 }
 
 void SharedPtrBlockGuard::store(const void* v) noexcept {
-	static_cast<std::shared_ptr<size_t>*>(_store.mem)[key] = *static_cast<const std::shared_ptr<size_t>*>(v);
+	static_cast<shared_ptr<size_t>*>(_store.mem)[key] = *static_cast<const shared_ptr<size_t>*>(v);
 }
 
 size_t SharedPtrBlockGuard::blockSize() noexcept {
@@ -216,7 +223,7 @@ size_t AtomicBlockStore::allocBlock() {
 }
 
 void AtomicBlockStore::freeBlock(size_t) {
-	throw std::logic_error("not implemented");
+	throw logic_error("not implemented");
 }
 
 void AtomicBlockStore::load(size_t key, void* v) noexcept {
@@ -239,7 +246,7 @@ size_t AtomicBlockStore::capacity() noexcept {
 
 void AtomicBlockStore::setCapacity(size_t n) {
 	if (n < _length)
-		throw std::length_error("Capacity must be greater than or equal to length");
+		throw length_error("Capacity must be greater than or equal to length");
 
 	if (n == _capacity)
 		return;
@@ -251,7 +258,7 @@ void AtomicBlockStore::setCapacity(size_t n) {
 
 	auto newMem = realloc(mem, _blockSize * n);
 	if (!newMem)
-		throw new std::runtime_error("realloc() failed");
+		throw new runtime_error("realloc() failed");
 
 	mem = newMem;
 	_capacity = n;
@@ -288,7 +295,7 @@ size_t BlockStore::allocBlock() {
 }
 
 void BlockStore::freeBlock(size_t) {
-	throw std::logic_error("not implemented");
+	throw logic_error("not implemented");
 }
 
 void BlockStore::load(size_t key, void* v) noexcept {
@@ -311,7 +318,7 @@ size_t BlockStore::capacity() noexcept {
 
 void BlockStore::setCapacity(size_t n) {
 	if (n < _length)
-		throw std::length_error("Capacity must be greater than or equal to length");
+		throw length_error("Capacity must be greater than or equal to length");
 
 	if (n == _capacity)
 		return;
@@ -323,7 +330,7 @@ void BlockStore::setCapacity(size_t n) {
 
 	auto newMem = realloc(mem, _blockSize * n);
 	if (!newMem)
-		throw new std::runtime_error("realloc() failed");
+		throw new runtime_error("realloc() failed");
 
 	mem = newMem;
 	_capacity = n;
