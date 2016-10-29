@@ -17,6 +17,7 @@ public:
 
 	static const uint8_t* read(const uint8_t* data, uint64_t* lengthOut) noexcept;
 	static uint8_t* write(uint64_t length, uint8_t* data) noexcept;
+	static uint8_t* writeReverse(uint64_t length, uint8_t* data) noexcept;
 };
 
 } // namespace util

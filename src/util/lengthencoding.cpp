@@ -42,4 +42,22 @@ uint8_t* LengthEncoding::write(uint64_t length, uint8_t* data) noexcept {
 	return data + byteCount;
 }
 
+uint8_t* LengthEncoding::writeReverse(uint64_t length, uint8_t* data) noexcept {
+	assert(length <= lengthMax);
+	const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
+	const unsigned int byteCount = 1 << (byteCountMask >> 6);
+	uint8_t* p = reinterpret_cast<uint8_t*>(&length);
+	switch (byteCount) {
+		case 8: *--data = *p++;
+				*--data = *p++;
+				*--data = *p++;
+				*--data = *p++;
+				*--data = *p++;
+				*--data = *p++;
+		case 2: *--data = *p++;
+		case 1: *--data = *p | byteCountMask;
+	}
+	return data;
+}
+
 } // namespace util
