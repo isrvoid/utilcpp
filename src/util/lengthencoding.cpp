@@ -36,7 +36,7 @@ uint8_t* LengthEncoding::write(uint64_t length, uint8_t* data) noexcept {
 				data[3] = *p++;
 				data[2] = *p++;
 		case 2: data[1] = *p++;
-		case 1: data[0] = *p | byteCountMask;
+		case 1: data[0] = static_cast<uint8_t>(*p | byteCountMask);
 	}
 
 	return data + byteCount;
@@ -55,7 +55,7 @@ uint8_t* LengthEncoding::writeReverse(uint64_t length, uint8_t* data) noexcept {
 				*--data = *p++;
 				*--data = *p++;
 		case 2: *--data = *p++;
-		case 1: *--data = *p | byteCountMask;
+		case 1: *--data = static_cast<uint8_t>(*p | byteCountMask);
 	}
 	return data;
 }
