@@ -42,7 +42,7 @@ uint8_t* LengthEncoding::write(uint64_t length, uint8_t* data) noexcept {
 	return data + byteCount;
 }
 
-uint8_t* LengthEncoding::writeReverse(uint64_t length, uint8_t* data) noexcept {
+uint8_t* LengthEncoding::writeBack(uint64_t length, uint8_t* data) noexcept {
 	assert(length <= lengthMax);
 	const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
 	const unsigned int byteCount = 1 << (byteCountMask >> 6);

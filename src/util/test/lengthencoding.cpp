@@ -44,8 +44,8 @@ TEST_F(LengthEncodingTest, Write) {
 	Len::write(0, data);
 }
 
-TEST_F(LengthEncodingTest, WriteReverse) {
-	Len::writeReverse(0, dataEnd);
+TEST_F(LengthEncodingTest, WriteBack) {
+	Len::writeBack(0, dataEnd);
 }
 
 TEST_F(LengthEncodingTest, WriteLength0YieldsZeroedOutData) {
@@ -54,7 +54,7 @@ TEST_F(LengthEncodingTest, WriteLength0YieldsZeroedOutData) {
 }
 
 TEST_F(LengthEncodingTest, WriteReveseLength0YieldsZeroedOutData) {
-	Len::writeReverse(0, dataEnd);
+	Len::writeBack(0, dataEnd);
 	ASSERT_EQ(0, std::memcmp(init, data, sizeof(init)));
 }
 
@@ -62,8 +62,8 @@ TEST_F(LengthEncodingTest, WriteAdvancesData) {
 	ASSERT_EQ(data + 1, Len::write(0, data));
 }
 
-TEST_F(LengthEncodingTest, WriteReverseDecreasesData) {
-	ASSERT_EQ(dataEnd - 1, Len::writeReverse(0, dataEnd));
+TEST_F(LengthEncodingTest, WriteBackDecreasesData) {
+	ASSERT_EQ(dataEnd - 1, Len::writeBack(0, dataEnd));
 }
 
 TEST_F(LengthEncodingTest, WriteMaxByteValue) {
@@ -73,8 +73,8 @@ TEST_F(LengthEncodingTest, WriteMaxByteValue) {
 	ASSERT_EQ(0, memcmp(init + 1, data + 1, sizeof(init) - 1));
 }
 
-TEST_F(LengthEncodingTest, WriteReverseMaxByteValue) {
-	ASSERT_EQ(dataEnd - 1, Len::writeReverse(Len::byteLengthMax, dataEnd));
+TEST_F(LengthEncodingTest, WriteBackMaxByteValue) {
+	ASSERT_EQ(dataEnd - 1, Len::writeBack(Len::byteLengthMax, dataEnd));
 	auto byteLengthMax = Len::byteLengthMax;
 	ASSERT_EQ(byteLengthMax, dataEnd[-1]);
 	ASSERT_EQ(0, memcmp(init, data, sizeof(init) - 1));
@@ -84,8 +84,8 @@ TEST_F(LengthEncodingTest, WriteShortMinAdvancesDataBy2) {
 	ASSERT_EQ(data + 2, Len::write(Len::byteLengthMax + 1, data));
 }
 
-TEST_F(LengthEncodingTest, WriteReverseShortMinDecreasesDataBy2) {
-	ASSERT_EQ(dataEnd - 2, Len::writeReverse(Len::byteLengthMax + 1, dataEnd));
+TEST_F(LengthEncodingTest, WriteBackShortMinDecreasesDataBy2) {
+	ASSERT_EQ(dataEnd - 2, Len::writeBack(Len::byteLengthMax + 1, dataEnd));
 }
 
 TEST_F(LengthEncodingTest, ReadShortMinAdvancesDataBy2) {
@@ -104,9 +104,9 @@ TEST_F(LengthEncodingTest, ShortMin) {
 	ASSERT_EQ(0, memcmp(init + 2, data + 2, sizeof(init) - 2));
 }
 
-TEST_F(LengthEncodingTest, ShortMinReverse) {
+TEST_F(LengthEncodingTest, ShortMinBack) {
 	auto length = Len::byteLengthMax + 1;
-	ASSERT_EQ(dataEnd - 2, Len::writeReverse(length, dataEnd));
+	ASSERT_EQ(dataEnd - 2, Len::writeBack(length, dataEnd));
 	uint64_t verify;
 	ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, &verify));
 	ASSERT_EQ(length, verify);
@@ -124,9 +124,9 @@ TEST_F(LengthEncodingTest, ShortMax) {
 	ASSERT_EQ(0, memcmp(init + 2, data + 2, sizeof(init) - 2));
 }
 
-TEST_F(LengthEncodingTest, ShortMaxReverse) {
+TEST_F(LengthEncodingTest, ShortMaxBack) {
 	auto length = Len::shortLengthMax;
-	ASSERT_EQ(dataEnd - 2, Len::writeReverse(length, dataEnd));
+	ASSERT_EQ(dataEnd - 2, Len::writeBack(length, dataEnd));
 	uint64_t verify;
 	ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, &verify));
 	ASSERT_EQ(length, verify);
@@ -142,9 +142,9 @@ TEST_F(LengthEncodingTest, LongMin) {
 	ASSERT_EQ(length, verify);
 }
 
-TEST_F(LengthEncodingTest, LongMinReverse) {
+TEST_F(LengthEncodingTest, LongMinBack) {
 	auto length = Len::shortLengthMax + 1;
-	ASSERT_EQ(data, Len::writeReverse(length, dataEnd));
+	ASSERT_EQ(data, Len::writeBack(length, dataEnd));
 	uint64_t verify;
 	ASSERT_EQ(dataEnd, Len::read(data, &verify));
 	ASSERT_EQ(length, verify);
@@ -158,9 +158,9 @@ TEST_F(LengthEncodingTest, LongMax) {
 	ASSERT_EQ(length, verify);
 }
 
-TEST_F(LengthEncodingTest, LongMaxReverse) {
+TEST_F(LengthEncodingTest, LongMaxBack) {
 	auto length = Len::lengthMax;
-	ASSERT_EQ(data, Len::writeReverse(length, dataEnd));
+	ASSERT_EQ(data, Len::writeBack(length, dataEnd));
 	uint64_t verify;
 	ASSERT_EQ(dataEnd, Len::read(data, &verify));
 	ASSERT_EQ(length, verify);
@@ -173,7 +173,7 @@ TEST_F(LengthEncodingTest, LongMaxReverse) {
 		ASSERT_EQ(length, verify); \
  \
 		memset(data, 0, sizeof(data)); \
-		ASSERT_EQ(data, Len::writeReverse(length, advancedData)); \
+		ASSERT_EQ(data, Len::writeBack(length, advancedData)); \
 		ASSERT_EQ(advancedData, Len::read(data, &verify)); \
 		ASSERT_EQ(length, verify)
 
