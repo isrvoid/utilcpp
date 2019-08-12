@@ -5,5 +5,6 @@ add_app_sources(
 	)
 
 add_subdirectory(sha1)
+add_subdirectory(crc)
 
 add_subdirectory(test)
