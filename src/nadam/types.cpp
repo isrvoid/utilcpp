@@ -10,8 +10,8 @@ MessageInfo::MessageInfo(std::string name, uint32_t size, bool isVariableSize)
 	assert(name.length());
 }
 
-util::sha1::hash MessageInfo::constructHash(const std::string& name, uint32_t size, bool isVariableSize) {
-	util::sha1::Digest sha;
+MessageInfo::hash_t MessageInfo::constructHash(const std::string& name, uint32_t size, bool isVariableSize) {
+	util::digest::SHA1 sha;
 	sha.put(name.data(), static_cast<uint32_t>(name.size()));
 	sha.put(isVariableSize);
 	for (size_t i = 0; i < sizeof(size); ++i) {

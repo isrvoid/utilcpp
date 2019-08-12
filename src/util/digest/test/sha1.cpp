@@ -2,12 +2,12 @@
 
 #include <cstring>
 
-#include <util/sha1/digest.h>
+#include <util/digest/sha1.h>
 
 namespace {
 
-using util::sha1::hash;
-using util::sha1::Digest;
+using Digest = util::digest::SHA1;
+
 #include "sha1testvectors.cpp"
 
 class UtilSHA1Test : public ::testing::Test {

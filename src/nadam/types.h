@@ -7,7 +7,7 @@ License: opensource.org/licenses/MIT
 #include <cstdint>
 #include <string>
 
-#include <util/sha1/digest.h>
+#include <util/digest/sha1.h>
 
 namespace nadam {
 
@@ -18,12 +18,13 @@ struct MessageInfo {
 		const uint32_t maxSize;
 	};
 	const bool isVariableSize;
-	const util::sha1::hash hash;
+	using hash_t = util::digest::SHA1::hash_t;
+	const hash_t hash;
 
 	MessageInfo(std::string name, uint32_t size, bool isVariableSize = false);
 
-	private:
-	util::sha1::hash constructHash(const std::string& name, uint32_t size, bool isVariableSize);
+private:
+	hash_t constructHash(const std::string& name, uint32_t size, bool isVariableSize);
 };
 
 } // namespace nadam

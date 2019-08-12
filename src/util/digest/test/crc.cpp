@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <util/crc/digest.h>
+#include <util/digest/crc.h>
 
 using namespace std;
-using namespace msi;
+using namespace util::digest;
 
 namespace {
 

@@ -1,9 +1,9 @@
-#include "digest.h"
+#include "sha1.h"
 
 #include <cstring>
 
 namespace util {
-namespace sha1 {
+namespace digest {
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
@@ -18,7 +18,7 @@ namespace sha1 {
 #define R3(v,w,x,y,z,i)  z += (((w|x)&y)|(w&x)) + blk(i) + 0x8F1BBCDC + rol(v,5); w=rol(w,30);
 #define R4(v,w,x,y,z,i)  z += (w^x^y)           + blk(i) + 0xCA62C1D6 + rol(v,5); w=rol(w,30);
 
-void Digest::transform(const uint8_t* data) {
+void SHA1::transform(const uint8_t* data) {
 	uint32_t a, b, c, d, e;
 	uint32_t block[16];
 	memcpy(block, data, sizeof(block));
@@ -60,11 +60,11 @@ void Digest::transform(const uint8_t* data) {
 	state[4] += e;
 }
 
-Digest::Digest() {
+SHA1::SHA1() {
 	start();
 }
 
-void Digest::start() {
+void SHA1::start() {
 	// SHA1 initialization constants
 	state[0] = 0x67452301;
 	state[1] = 0xEFCDAB89;
@@ -74,7 +74,7 @@ void Digest::start() {
 	count[0] = count[1] = 0;
 }
 
-void Digest::put(const void* d, uint32_t len) {
+void SHA1::put(const void* d, uint32_t len) {
 	auto data = static_cast<const uint8_t*>(d);
 	uint32_t i{}, j{};
 
@@ -96,11 +96,11 @@ void Digest::put(const void* d, uint32_t len) {
 	memcpy(&buffer[j], &data[i], len - i);
 }
 
-void Digest::put(uint8_t b) {
+void SHA1::put(uint8_t b) {
 	put(&b, 1);
 }
 
-hash Digest::finish() {
+SHA1::hash_t SHA1::finish() {
 	uint8_t finalcount[8];
 	for (uint32_t i = 0; i < 8; ++i)
 		finalcount[i] = count[i >= 4 ? 0 : 1] >> (3 - (i & 3)) * 8 & 0xFF; // Endian independent
@@ -111,18 +111,18 @@ hash Digest::finish() {
 
 	put(finalcount, sizeof(finalcount)); // Should cause a Sha1TransformFunction()
 
-	hash result;
+	hash_t result;
 	uint8_t* resultData = result.data();
 	for (uint32_t i = 0; i < hashLength; ++i)
 		resultData[i] = state[i >> 2] >> (3 - (i & 3)) * 8 & 0xFF;
 	return result;
 }
 
-hash Digest::digest(const void* d, uint32_t length) {
+SHA1::hash_t SHA1::digest(const void* d, uint32_t length) {
 	start();
 	put(d, length);
 	return finish();
 }
 
-} // namespace sha1
+} // namespace digest
 } // namespace util

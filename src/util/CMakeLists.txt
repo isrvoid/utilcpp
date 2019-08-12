@@ -4,7 +4,6 @@ add_app_sources(
 	lengthencoding.cpp
 	)
 
-add_subdirectory(sha1)
-add_subdirectory(crc)
+add_subdirectory(digest)
 
 add_subdirectory(test)

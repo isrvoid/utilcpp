@@ -28,7 +28,7 @@ TEST(NadamMessageInfoTest, ConstructHash) {
 
 	uint8_t expectedInput[] = {'f', 'o', 'o', 1, 0x0, 0x0, 0x0, 0x5a};
 
-	util::sha1::Digest sha;
+	util::digest::SHA1 sha;
 	ASSERT_EQ(sha.digest(expectedInput, sizeof(expectedInput)), mi.hash);
 }
 
