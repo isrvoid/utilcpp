@@ -2,7 +2,7 @@ set(TEMP_GCC_WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-a
 set(TEMP_GPP_WARNINGS "-Wall -Wextra -pedantic -Wpointer-arith -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wconversion -Wno-sign-compare -Wzero-as-null-pointer-constant")
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TEMP_GCC_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TEMP_GPP_WARNINGS}")
