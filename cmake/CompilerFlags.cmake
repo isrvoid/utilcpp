@@ -1,6 +1,5 @@
 set(TEMP_GCC_WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wconversion -Wstrict-prototypes")
-set(TEMP_GPP_WARNINGS "-Wall -Wextra -pedantic -Wpointer-arith -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wno-conversion -Wzero-as-null-pointer-constant")
-# TODO remove "no" from -Wno-conversion
+set(TEMP_GPP_WARNINGS "-Wall -Wextra -pedantic -Wpointer-arith -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wconversion -Wno-sign-compare -Wzero-as-null-pointer-constant")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 14)

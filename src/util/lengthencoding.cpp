@@ -14,9 +14,12 @@ const uint8_t* LengthEncoding::read(const uint8_t* data, uint64_t* lengthOut) no
 				*p++ = data[6];
 				*p++ = data[5];
 				*p++ = data[4];
+				[[fallthrough]];
 		case 4: *p++ = data[3]; // this case is never encoded, but can be decoded
 				*p++ = data[2];
+				[[fallthrough]];
 		case 2: *p++ = data[1];
+				[[fallthrough]];
 		case 1: *p = data[0] & 0x3f;
 	}
 	*lengthOut = length;
@@ -35,7 +38,9 @@ uint8_t* LengthEncoding::write(uint64_t length, uint8_t* data) noexcept {
 				data[4] = *p++;
 				data[3] = *p++;
 				data[2] = *p++;
+				[[fallthrough]];
 		case 2: data[1] = *p++;
+				[[fallthrough]];
 		case 1: data[0] = static_cast<uint8_t>(*p | byteCountMask);
 	}
 
@@ -54,7 +59,9 @@ uint8_t* LengthEncoding::writeBack(uint64_t length, uint8_t* data) noexcept {
 				*--data = *p++;
 				*--data = *p++;
 				*--data = *p++;
+				[[fallthrough]];
 		case 2: *--data = *p++;
+				[[fallthrough]];
 		case 1: *--data = static_cast<uint8_t>(*p | byteCountMask);
 	}
 	return data;
