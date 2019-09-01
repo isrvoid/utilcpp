@@ -1,1 +1,1 @@
-add_app_sources(nadam.cpp)
+add_sources(nadam.cpp)

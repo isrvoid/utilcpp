@@ -8,7 +8,7 @@ function(_add_files_to_property PROPERTY)
 	endforeach()
 endfunction()
 
-function(add_app_sources)
+function(add_sources)
 	_add_files_to_property(G_APP_SOURCES ${ARGN})
 endfunction()
 

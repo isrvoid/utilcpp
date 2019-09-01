@@ -1,4 +1,4 @@
-add_app_sources(
+add_sources(
 	blockstore.cpp
 	semaphore.cpp
 	lengthencoding.cpp
