@@ -7,7 +7,6 @@
 
 using namespace std;
 using namespace util;
-using namespace typeinfo;
 
 struct NonPolyBase {};
 struct NonPolyDerived : NonPolyBase {};
@@ -25,45 +24,46 @@ constexpr uint32_t crcOf(const char* s) {
     return crc.finish();
 }
 
-TEST(TypeInfoTest, HashCode) {
-    ASSERT_EQ(crcOf("int"), hashCode(42));
+// FIXME streq with typeName directly
+TEST(TypeNameTest, Int) {
+    ASSERT_EQ(crcOf("int"), typeHash(42));
 }
 
-TEST(TypeInfoTest, HashCodeIsConstexpr) {
-    constexpr auto typeHash = hashCode(42u);
-    ASSERT_EQ(crcOf("unsigned int"), typeHash);
+TEST(TypeNameTest, IsConstexpr) {
+    constexpr auto hash = typeHash(42u);
+    ASSERT_EQ(crcOf("unsigned int"), hash);
 }
 
-TEST(TypeInfoTest, HashCodeErasesTypedef) {
-    ASSERT_EQ(crcOf("unsigned char"), hashCode(static_cast<uint8_t>(42)));
+TEST(TypeNameTest, TypedefIsErased) {
+    ASSERT_EQ(crcOf("unsigned char"), typeHash(static_cast<uint8_t>(42)));
 }
 
-TEST(TypeInfoTest, HashCodeSharedPtr) {
+TEST(TypeNameTest, SharedPtr) {
     constexpr auto expect = crcOf("std::shared_ptr<int>");
-    ASSERT_EQ(expect, hashCode(make_shared<int>(42)));
+    ASSERT_EQ(expect, typeHash(make_shared<int>(42)));
 }
 
-TEST(TypeInfoTest, HashCodeNestedTypes) {
+TEST(TypeNameTest, NestedTypes) {
     uint32_t expect;
     expect = crcOf("std::shared_ptr<std::vector<bool>>");
-    ASSERT_EQ(expect, hashCode(make_shared<vector<bool>>()));
+    ASSERT_EQ(expect, typeHash(make_shared<vector<bool>>()));
 
     expect = crcOf("std::vector<std::vector<std::pair<int, bool>>>");
-    ASSERT_EQ(expect, hashCode(std::vector<std::vector<std::pair<int, bool>>>{}));
+    ASSERT_EQ(expect, typeHash(std::vector<std::vector<std::pair<int, bool>>>{}));
 }
 
-TEST(TypeInfoTest, HashCodeVoid) {
-    ASSERT_EQ(crcOf("void"), TypeInfo<void>::hashCode());
+TEST(TypeNameTest, Void) {
+    ASSERT_EQ(crcOf("void"), TypeInfoFactory<void>::hash());
 }
 
-TEST(TypeInfoTest, HashCodeIsNotPolymorphic) {
+TEST(TypeNameTest, IsNotPolymorphic) {
     NonPolyDerived d1;
     NonPolyBase& b1 = d1;
-    ASSERT_EQ(crcOf("NonPolyBase"), hashCode(b1));
+    ASSERT_EQ(crcOf("NonPolyBase"), typeHash(b1));
 
     PolyDerived d2;
     PolyBase& b2 = d2;
-    ASSERT_EQ(crcOf("PolyBase"), hashCode(b2));
+    ASSERT_EQ(crcOf("PolyBase"), typeHash(b2));
 }
 
 } // namespace

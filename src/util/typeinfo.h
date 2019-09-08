@@ -3,16 +3,28 @@
 #include <type_traits>
 #include <util/digest/crc.h>
 
-namespace typeinfo {
+namespace util {
+
+struct TypeInfo {
+    uint32_t hash;
+    uint32_t size;
+    const void* serde;
+};
 
 template<typename T>
-struct TypeInfo {
-    static constexpr unsigned int hashCode() {
+struct TypeInfoFactory {
+    static TypeInfo create() {
+        static const TypeInfo ti{hash(), sizeof(T)}; // FIXME serde
+        return ti;
+    }
+
+    // TODO name(), resuse name in hash()
+    static constexpr unsigned int hash() {
         util::digest::CRC32 crc;
         // __PRETTY_FUNCTION__:
-        // static constexpr unsigned int typeinfo::TypeInfo<T>::hashCode() [with T = unsigned char]
+        // static constexpr unsigned int util::TypeInfoFactory<T>::hash() [with T = unsigned char]
         constexpr const char* func = __PRETTY_FUNCTION__;
-        constexpr size_t squareBracketIndex = 64;
+        constexpr size_t squareBracketIndex = 63;
         static_assert('[' == func[squareBracketIndex], "Wrong '[' index (function signature changed?)");
         const char* p = func + squareBracketIndex + 9; // "9: with T = ".length();
         while (*++p != ']') {
@@ -28,10 +40,12 @@ struct TypeInfo {
 };
 
 template<typename T>
-constexpr uint32_t hashCode(const T&) {
-    static_assert(!std::is_pointer<T>::value, "Don't pass pointers (const ambiguity)");
-    return TypeInfo<T>::hashCode();
+constexpr uint32_t typeHash(const T&) {
+    static_assert(!std::is_pointer<T>::value, "Don't pass pointers (const T* and T* differ)");
+    return TypeInfoFactory<T>::hash();
 }
 
-} // namespace typeinfo
+// TODO typeName()
+
+} // namespace util
 
