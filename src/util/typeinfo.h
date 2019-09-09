@@ -18,24 +18,58 @@ struct TypeInfoFactory {
         return ti;
     }
 
-    // TODO name(), resuse name in hash()
     static constexpr unsigned int hash() {
         util::digest::CRC32 crc;
-        // __PRETTY_FUNCTION__:
-        // static constexpr unsigned int util::TypeInfoFactory<T>::hash() [with T = unsigned char]
-        constexpr const char* func = __PRETTY_FUNCTION__;
-        constexpr size_t squareBracketIndex = 63;
-        static_assert('[' == func[squareBracketIndex], "Wrong '[' index (function signature changed?)");
-        const char* p = func + squareBracketIndex + 9; // "9: with T = ".length();
-        while (*++p != ']') {
-            // skip spaces in closing '>' (e.g. std::shared_ptr<std::vector<int> >)
-            if (*p == ' ' && p[-1] == '>')
-                ++p;
-
+        const char* p = name().name - 1;
+        while (*++p != '\0')
             crc.put(*p);
-        }
 
         return crc.finish();
+    }
+
+private:
+    struct NamePtr {
+        const char* p;
+        size_t length;
+    };
+
+    static constexpr NamePtr namePtr() {
+        // __PRETTY_FUNCTION__ example:
+        // static constexpr util::TypeInfoFactory<T>::NamePtr util::TypeInfoFactory<T>::namePtr() [with T = int]
+        constexpr const char* func = __PRETTY_FUNCTION__;
+        constexpr size_t squareBracketIndex = 87;
+        static_assert('[' == func[squareBracketIndex], "Wrong '[' index (function signature changed?)");
+        constexpr const char* start = func + squareBracketIndex + 10; // 10: 1 + "with T = ".length();
+        const char* p = start - 1;
+        size_t closingGtCount = 0;
+        while (*++p != ']')
+            if (*p == '>')
+                ++closingGtCount;
+
+        const size_t length = closingGtCount < 2 ? p - start : p - start + 1 - closingGtCount;
+        return NamePtr{start, length};
+    }
+
+    template<size_t length>
+    struct Name {
+        char name[length + 1]{};
+    };
+
+public:
+    static constexpr auto name() {
+        constexpr auto ptr = namePtr();
+        Name<ptr.length> name;
+        const char* pSrc = ptr.p - 1;
+        char* pDest = name.name - 1;
+        while (*++pSrc != ']') {
+            if (*pSrc == ' ' && pSrc[-1] == '>')
+                ++pSrc;
+
+            *++pDest = *pSrc;
+        }
+
+        name.name[ptr.length] = '\0';
+        return name;
     }
 };
 
@@ -45,7 +79,11 @@ constexpr uint32_t typeHash(const T&) {
     return TypeInfoFactory<T>::hash();
 }
 
-// TODO typeName()
+template<typename T>
+const char* typeName(const T&) {
+    static auto name = TypeInfoFactory<T>::name();
+    return name.name;
+}
 
 } // namespace util
 
