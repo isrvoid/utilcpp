@@ -3,4 +3,5 @@ add_test_sources(
 	semaphore.cpp
 	lengthencoding.cpp
 	typeinfo.cpp
+	serdeimpl.cpp
 	)
