@@ -1,6 +1,5 @@
 #pragma once
 
-#include <type_traits>
 #include <util/digest/crc.h>
 
 namespace util {
@@ -12,13 +11,8 @@ struct TypeInfo {
 };
 
 template<typename T>
-struct TypeInfoFactory {
-    static TypeInfo create() {
-        static const TypeInfo ti{hash(), sizeof(T)}; // FIXME serde
-        return ti;
-    }
-
-    static constexpr unsigned int hash() {
+struct CtTypeInfo {
+    static constexpr unsigned int hash() noexcept {
         util::digest::CRC32 crc;
         const char* p = name().name - 1;
         while (*++p != '\0')
@@ -33,11 +27,11 @@ private:
         size_t length;
     };
 
-    static constexpr NamePtr namePtr() {
+    static constexpr NamePtr namePtr() noexcept {
         // __PRETTY_FUNCTION__ example:
-        // static constexpr util::TypeInfoFactory<T>::NamePtr util::TypeInfoFactory<T>::namePtr() [with T = int]
+        // static constexpr util::CtTypeInfo<T>::NamePtr util::CtTypeInfo<T>::namePtr() [with T = int]
         constexpr const char* func = __PRETTY_FUNCTION__;
-        constexpr size_t squareBracketIndex = 87;
+        constexpr size_t squareBracketIndex = 77;
         static_assert('[' == func[squareBracketIndex], "Wrong '[' index (function signature changed?)");
         constexpr const char* start = func + squareBracketIndex + 10; // 10: 1 + "with T = ".length();
         const char* p = start - 1;
@@ -56,7 +50,7 @@ private:
     };
 
 public:
-    static constexpr auto name() {
+    static constexpr auto name() noexcept {
         constexpr auto ptr = namePtr();
         Name<ptr.length> name;
         const char* pSrc = ptr.p - 1;
@@ -73,15 +67,15 @@ public:
     }
 };
 
+// convenience functions
 template<typename T>
-constexpr uint32_t typeHash(const T&) {
-    static_assert(!std::is_pointer<T>::value, "Don't pass pointers (const T* and T* differ)");
-    return TypeInfoFactory<T>::hash();
+constexpr uint32_t typeHash(const T&) noexcept {
+    return CtTypeInfo<T>::hash();
 }
 
 template<typename T>
-const char* typeName(const T&) {
-    static auto name = TypeInfoFactory<T>::name();
+const char* typeName(const T&) noexcept {
+    static auto name = CtTypeInfo<T>::name();
     return name.name;
 }
 

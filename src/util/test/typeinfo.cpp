@@ -22,7 +22,7 @@ TEST(TypeNameTest, Int) {
 
 TEST(TypeNameTest, IsConstexpr) {
     // typeName() is not constexpr, because of static array to hold the result
-    constexpr auto name = TypeInfoFactory<typeof(42u)>::name();
+    constexpr auto name = CtTypeInfo<typeof(42u)>::name();
     ASSERT_STREQ("unsigned int", name.name);
 }
 
@@ -42,7 +42,7 @@ TEST(TypeNameTest, NestedTypes) {
 }
 
 TEST(TypeNameTest, Void) {
-    ASSERT_STREQ("void", TypeInfoFactory<void>::name().name);
+    ASSERT_STREQ("void", CtTypeInfo<void>::name().name);
 }
 
 TEST(TypeNameTest, IsNotPolymorphic) {
