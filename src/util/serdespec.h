@@ -9,8 +9,10 @@
 #include <util/serde.h>
 #include <util/serdeimpl.h>
 
-#define SERDE_SPEC(TYPE, SER, DE)  template<> struct Spec<CtTypeInfo<TYPE>::hash()> { \
+#define _SERDE_SPEC(TYPE, SER, DE)  template<> struct Spec<CtTypeInfo<TYPE>::hash()> { \
     static constexpr std::pair<serializeFun, deserializeFun> value{SER, DE}; }
+
+#define SERDE_SPEC(NS, TYPE)  _SERDE_SPEC(NS::TYPE, serialize ## TYPE, deserialize ## TYPE)
 
 namespace util {
 namespace serde {
@@ -20,7 +22,7 @@ struct Spec {
     static constexpr void* value{nullptr};
 };
 
-SERDE_SPEC(std::vector<uint8_t>, serializevector<uint8_t>, deserializevector<uint8_t>);
+SERDE_SPEC(std, vector<uint8_t>);
 
 } // namespace serde
 } // namespace util
