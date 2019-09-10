@@ -69,14 +69,24 @@ public:
 
 // convenience functions
 template<typename T>
-constexpr uint32_t typeHash(const T&) noexcept {
+constexpr uint32_t typeHash() noexcept {
     return CtTypeInfo<T>::hash();
 }
 
 template<typename T>
-const char* typeName(const T&) noexcept {
+constexpr uint32_t typeHash(const T&) noexcept {
+    return typeHash<typeof(T)>();
+}
+
+template<typename T>
+const char* typeName() noexcept {
     static auto name = CtTypeInfo<T>::name();
     return name.name;
+}
+
+template<typename T>
+const char* typeName(const T&) noexcept {
+    return typeName<typeof(T)>();
 }
 
 } // namespace util

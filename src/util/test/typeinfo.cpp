@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <util/typeinfo.h>
+#include <util/typeinfofactory.h>
 #include <util/digest/crc.h>
 
 using namespace std;
@@ -42,7 +43,7 @@ TEST(TypeNameTest, NestedTypes) {
 }
 
 TEST(TypeNameTest, Void) {
-    ASSERT_STREQ("void", CtTypeInfo<void>::name().name);
+    ASSERT_STREQ("void", typeName<void>());
 }
 
 TEST(TypeNameTest, IsNotPolymorphic) {
@@ -74,6 +75,23 @@ TEST(TypeHashTest, IsCrcOverName) {
 TEST(TypeHashTest, IsConstexpr) {
     constexpr uint32_t hash = typeHash(42u);
     ASSERT_EQ(crcOf("unsigned int"), hash);
+}
+
+TEST(TypeInfoFactoryTest, Int) {
+    const auto expect = TypeInfo{typeHash<int>(), sizeof(int), nullptr};
+    ASSERT_EQ(0, memcmp(&expect, &TypeInfoFactory<int>::create(), sizeof(expect)));
+}
+
+TEST(TypeInfoFactoryTest, ByteVector) {
+    const auto expectSerialize = serde::serializevector<uint8_t>;
+    const auto expectDeserialize = serde::deserializevector<uint8_t>;
+
+    const auto res = TypeInfoFactory<vector<uint8_t>>::create();
+    ASSERT_EQ(res.hash, typeHash<vector<uint8_t>>());
+    ASSERT_EQ(res.size, sizeof(vector<uint8_t>));
+    const auto serde = static_cast<const pair<serde::serializeFun, serde::deserializeFun>*>(res.serde);
+    ASSERT_EQ(expectSerialize, serde->first);
+    ASSERT_EQ(expectDeserialize, serde->second);
 }
 
 } // namespace
