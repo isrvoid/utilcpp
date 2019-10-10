@@ -1,70 +1,79 @@
 #include "lengthencoding.h"
 
+#include <cstdint>
 #include <cassert>
 
 namespace util {
 
-const uint8_t* LengthEncoding::read(const uint8_t* data, uint64_t* lengthOut) noexcept {
-    const unsigned int byteCount = 1 << (*data >> 6);
+// to ensure compatibility between versions
+// length should be stored in big-endian format (network byte order)
+
+const void* LengthEncoding::read(const void* _src, size_t& lengthOut) noexcept {
+    auto src = static_cast<const uint8_t*>(_src);
+    const unsigned int byteCount = 1 << (*src >> 6);
     uint64_t length = 0;
     uint8_t* p = reinterpret_cast<uint8_t*>(&length);
 
     switch (byteCount) {
-        case 8: *p++ = data[7];
-                *p++ = data[6];
-                *p++ = data[5];
-                *p++ = data[4];
+        case 8: *p++ = src[7];
+                *p++ = src[6];
+                *p++ = src[5];
+                *p++ = src[4];
                 [[fallthrough]];
-        case 4: *p++ = data[3]; // this case is never encoded, but can be decoded
-                *p++ = data[2];
+        case 4: *p++ = src[3]; // this case is never encoded, but can be decoded
+                *p++ = src[2];
                 [[fallthrough]];
-        case 2: *p++ = data[1];
+        case 2: *p++ = src[1];
                 [[fallthrough]];
-        case 1: *p = data[0] & 0x3f;
+        case 1: *p = src[0] & 0x3f;
     }
-    *lengthOut = length;
-    return data + byteCount;
+    lengthOut = static_cast<size_t>(length);
+    return src + byteCount;
 }
 
-uint8_t* LengthEncoding::write(uint64_t length, uint8_t* data) noexcept {
+void* LengthEncoding::write(size_t _length, void* _dest) noexcept {
+    uint64_t length = _length;
     assert(length <= lengthMax);
+    auto dest = static_cast<uint8_t*>(_dest);
     const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
     const unsigned int byteCount = 1 << (byteCountMask >> 6);
     uint8_t* p = reinterpret_cast<uint8_t*>(&length);
     switch (byteCount) {
-        case 8: data[7] = *p++;
-                data[6] = *p++;
-                data[5] = *p++;
-                data[4] = *p++;
-                data[3] = *p++;
-                data[2] = *p++;
+        case 8: dest[7] = *p++;
+                dest[6] = *p++;
+                dest[5] = *p++;
+                dest[4] = *p++;
+                dest[3] = *p++;
+                dest[2] = *p++;
                 [[fallthrough]];
-        case 2: data[1] = *p++;
+        case 2: dest[1] = *p++;
                 [[fallthrough]];
-        case 1: data[0] = static_cast<uint8_t>(*p | byteCountMask);
+        case 1: dest[0] = static_cast<uint8_t>(*p | byteCountMask);
     }
 
-    return data + byteCount;
+    return dest + byteCount;
 }
 
-uint8_t* LengthEncoding::writeBack(uint64_t length, uint8_t* data) noexcept {
+void* LengthEncoding::writeBack(size_t _length, void* _dest) noexcept {
+    uint64_t length = _length;
     assert(length <= lengthMax);
+    auto dest = static_cast<uint8_t*>(_dest);
     const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
     const unsigned int byteCount = 1 << (byteCountMask >> 6);
     uint8_t* p = reinterpret_cast<uint8_t*>(&length);
     switch (byteCount) {
-        case 8: *--data = *p++;
-                *--data = *p++;
-                *--data = *p++;
-                *--data = *p++;
-                *--data = *p++;
-                *--data = *p++;
+        case 8: *--dest = *p++;
+                *--dest = *p++;
+                *--dest = *p++;
+                *--dest = *p++;
+                *--dest = *p++;
+                *--dest = *p++;
                 [[fallthrough]];
-        case 2: *--data = *p++;
+        case 2: *--dest = *p++;
                 [[fallthrough]];
-        case 1: *--data = static_cast<uint8_t>(*p | byteCountMask);
+        case 1: *--dest = static_cast<uint8_t>(*p | byteCountMask);
     }
-    return data;
+    return dest;
 }
 
 } // namespace util

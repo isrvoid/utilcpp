@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <cstddef>
 
 // this implementation currently only works on little-endian machines and is not thread safe
 
@@ -11,13 +11,13 @@ class LengthEncoding {
 
 public:
     static constexpr unsigned int byteCountMax = 8;
-    static constexpr unsigned int byteLengthMax = (1 << 6) - 1;
-    static constexpr unsigned int shortLengthMax = (1 << 14) - 1;
-    static constexpr uint64_t lengthMax = (static_cast<uint64_t>(1) << 62) - 1;
+    static constexpr unsigned int byteLengthMax = 0xff >> 2;
+    static constexpr unsigned int shortLengthMax = 0xffff >> 2;
+    static constexpr size_t lengthMax = static_cast<size_t>(-1) >> 2 * (sizeof(size_t) >= 8);
 
-    static const uint8_t* read(const uint8_t* data, uint64_t* lengthOut) noexcept;
-    static uint8_t* write(uint64_t length, uint8_t* data) noexcept;
-    static uint8_t* writeBack(uint64_t length, uint8_t* data) noexcept;
+    static const void* read(const void* src, size_t& lengthOut) noexcept;
+    static void* write(size_t length, void* dest) noexcept;
+    static void* writeBack(size_t length, void* dest) noexcept;
 };
 
 } // namespace util

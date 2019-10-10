@@ -16,26 +16,26 @@ protected:
 };
 
 TEST_F(LengthEncodingTest, Read) {
-    uint64_t length;
-    Len::read(data, &length);
+    size_t length;
+    Len::read(data, length);
 }
 
 TEST_F(LengthEncodingTest, ZeroedOutDataYieldsLength0) {
-    uint64_t length;
-    Len::read(data, &length);
+    size_t length;
+    Len::read(data, length);
     ASSERT_EQ(0, length);
 }
 
 TEST_F(LengthEncodingTest, ReadAdvancesData) {
-    uint64_t length;
-    auto p = Len::read(data, &length);
+    size_t length;
+    auto p = Len::read(data, length);
     ASSERT_EQ(data + 1, p);
 }
 
 TEST_F(LengthEncodingTest, ReadMaxByteValue) {
     data[0] = Len::byteLengthMax;
-    uint64_t length;
-    ASSERT_EQ(data + 1, Len::read(data, &length));
+    size_t length;
+    ASSERT_EQ(data + 1, Len::read(data, length));
     auto byteLengthMax = Len::byteLengthMax;
     ASSERT_EQ(byteLengthMax, length);
 }
@@ -90,15 +90,15 @@ TEST_F(LengthEncodingTest, WriteBackShortMinDecreasesDataBy2) {
 
 TEST_F(LengthEncodingTest, ReadShortMinAdvancesDataBy2) {
     Len::write(Len::byteLengthMax + 1, data);
-    uint64_t length;
-    ASSERT_EQ(data + 2, Len::read(data, &length));
+    size_t length;
+    ASSERT_EQ(data + 2, Len::read(data, length));
 }
 
 TEST_F(LengthEncodingTest, ShortMin) {
     auto length = Len::byteLengthMax + 1;
     ASSERT_EQ(data + 2, Len::write(length, data));
-    uint64_t verify;
-    ASSERT_EQ(data + 2, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(data + 2, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 
     ASSERT_EQ(0, memcmp(init + 2, data + 2, sizeof(init) - 2));
@@ -107,8 +107,8 @@ TEST_F(LengthEncodingTest, ShortMin) {
 TEST_F(LengthEncodingTest, ShortMinBack) {
     auto length = Len::byteLengthMax + 1;
     ASSERT_EQ(dataEnd - 2, Len::writeBack(length, dataEnd));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, verify));
     ASSERT_EQ(length, verify);
 
     ASSERT_EQ(0, memcmp(init, data, sizeof(init) - 2));
@@ -117,8 +117,8 @@ TEST_F(LengthEncodingTest, ShortMinBack) {
 TEST_F(LengthEncodingTest, ShortMax) {
     auto length = Len::shortLengthMax;
     ASSERT_EQ(data + 2, Len::write(length, data));
-    uint64_t verify;
-    ASSERT_EQ(data + 2, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(data + 2, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 
     ASSERT_EQ(0, memcmp(init + 2, data + 2, sizeof(init) - 2));
@@ -127,8 +127,8 @@ TEST_F(LengthEncodingTest, ShortMax) {
 TEST_F(LengthEncodingTest, ShortMaxBack) {
     auto length = Len::shortLengthMax;
     ASSERT_EQ(dataEnd - 2, Len::writeBack(length, dataEnd));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(dataEnd - 2, verify));
     ASSERT_EQ(length, verify);
 
     ASSERT_EQ(0, memcmp(init, data, sizeof(init) - 2));
@@ -137,60 +137,60 @@ TEST_F(LengthEncodingTest, ShortMaxBack) {
 TEST_F(LengthEncodingTest, LongMin) {
     auto length = Len::shortLengthMax + 1;
     ASSERT_EQ(dataEnd, Len::write(length, data));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 }
 
 TEST_F(LengthEncodingTest, LongMinBack) {
     auto length = Len::shortLengthMax + 1;
     ASSERT_EQ(data, Len::writeBack(length, dataEnd));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 }
 
 TEST_F(LengthEncodingTest, LongMax) {
     auto length = Len::lengthMax;
     ASSERT_EQ(dataEnd, Len::write(length, data));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 }
 
 TEST_F(LengthEncodingTest, LongMaxBack) {
     auto length = Len::lengthMax;
     ASSERT_EQ(data, Len::writeBack(length, dataEnd));
-    uint64_t verify;
-    ASSERT_EQ(dataEnd, Len::read(data, &verify));
+    size_t verify;
+    ASSERT_EQ(dataEnd, Len::read(data, verify));
     ASSERT_EQ(length, verify);
 }
 
 #define LENGTH_ENCODING_TEST_IMPL()  \
-        uint64_t verify; \
+        size_t verify; \
         auto advancedData = Len::write(length, data); \
-        ASSERT_EQ(advancedData, Len::read(data, &verify)); \
+        ASSERT_EQ(advancedData, Len::read(data, verify)); \
         ASSERT_EQ(length, verify); \
  \
         memset(data, 0, sizeof(data)); \
         ASSERT_EQ(data, Len::writeBack(length, advancedData)); \
-        ASSERT_EQ(advancedData, Len::read(data, &verify)); \
+        ASSERT_EQ(advancedData, Len::read(data, verify)); \
         ASSERT_EQ(length, verify)
 
 TEST_F(LengthEncodingTest, SmallValues) {
-    for (unsigned int length = 0; length < (1 << 10); length += 0xa5) {
+    for (size_t length = 0; length < (1 << 10); length += 0xa5) {
         LENGTH_ENCODING_TEST_IMPL();
     }
 }
 
 TEST_F(LengthEncodingTest, MediumValues) {
-    for (unsigned int length = 0; length < (1 << 18); length += 0xaa55) {
+    for (size_t length = 0; length < (1 << 18); length += 0xaa55) {
         LENGTH_ENCODING_TEST_IMPL();
     }
 }
 
 TEST_F(LengthEncodingTest, LargeValues) {
-    for (uint64_t length = 0; length < (static_cast<uint64_t>(1) << 34); length += 0xaaaa5555) {
+    for (size_t length = Len::lengthMax, i = 0; i < 8; length -= 0xaaa5555, i++) {
         LENGTH_ENCODING_TEST_IMPL();
     }
 }
