@@ -1,8 +1,8 @@
 add_sources(
-	blockstore.cpp
-	semaphore.cpp
-	lengthencoding.cpp
-	)
+    blockstore.cpp
+    lengthencoding.cpp
+    loader.cpp
+    )
 
 add_subdirectory(digest)
 
