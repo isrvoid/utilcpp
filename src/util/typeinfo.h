@@ -12,20 +12,15 @@ struct TypeInfo {
 
 template<typename T>
 class TypeName {
-    struct NamePtr {
-        static constexpr const char* _getPtr() {
-            const char* p = __PRETTY_FUNCTION__;
-            while (*p++ != '=') { }
-            return p + 1;
-        }
+private:
+    static constexpr unsigned int _length() {
+        const char* p = __PRETTY_FUNCTION__;
+        while (*p != '=')
+            p++;
+        p += 2;
 
-        static constexpr const char* p = _getPtr();
-    };
-
-    static constexpr size_t _length() {
-        const char* p = NamePtr::p;
-        size_t length = 0;
-        for (; !(*p == '\0' || *p == ']'); p++) {
+        unsigned int length = 0;
+        for (; *p != ']'; p++) {
             if (*p == ' ' && p[-1] == '>')
                 continue;
 
@@ -44,10 +39,14 @@ private:
     };
 
     static constexpr Name<length> _name() {
+        const char* p = __PRETTY_FUNCTION__;
+        while (*p != '=')
+            p++;
+        p += 2;
+
         Name<length> name;
         char* dest = name.a;
-        const char* p = NamePtr::p;
-        for (; !(*p == '\0' || *p == ']'); p++) {
+        for (; *p != ']'; p++) {
             if (*p == ' ' && p[-1] == '>')
                 continue;
 
@@ -64,6 +63,7 @@ public:
 
 template<typename T>
 class TypeHash {
+private:
     static constexpr unsigned int _hash() noexcept {
         util::digest::CRC32 crc;
         const char* p = TypeName<T>::name;
