@@ -12,7 +12,6 @@ struct TypeInfo {
 
 template<typename T>
 class TypeName {
-private:
     struct NamePtr {
         static constexpr const char* _getPtr() {
             const char* p = __PRETTY_FUNCTION__;
@@ -64,30 +63,29 @@ public:
 };
 
 template<typename T>
-struct CtTypeInfo {
-    static constexpr unsigned int hash() noexcept {
+class TypeHash {
+    static constexpr unsigned int _hash() noexcept {
         util::digest::CRC32 crc;
-        const char* p = name();
-        while (*p != '\0')
-            crc.put(*p++);
+        const char* p = TypeName<T>::name;
+        for (size_t i = 0; i < TypeName<T>::length; i++, p++)
+            crc.put(*p);
 
         return crc.finish();
     }
 
-    static constexpr const char* name() noexcept {
-        return TypeName<T>::name;
-    }
+public:
+    static constexpr uint32_t hash = _hash();
 };
 
 // convenience functions
 template<typename T>
 constexpr uint32_t typeHash() noexcept {
-    return CtTypeInfo<T>::hash();
+    return TypeHash<T>::hash;
 }
 
 template<typename T>
 constexpr uint32_t typeHash(const T&) noexcept {
-    return typeHash<T>();
+    return TypeHash<T>::hash;
 }
 
 template<typename T>

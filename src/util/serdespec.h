@@ -9,7 +9,7 @@
 #include <util/serde.h>
 #include <util/serdeimpl.h>
 
-#define _SERDE_SPEC(TYPE, SER, DE)  template<> struct Spec<CtTypeInfo<TYPE>::hash()> { \
+#define _SERDE_SPEC(TYPE, SER, DE)  template<> struct Spec<TypeHash<TYPE>::hash> { \
     static constexpr std::pair<serializeFun, deserializeFun> value{SER, DE}; }
 
 #define SERDE_SPEC(NS, TYPE)  _SERDE_SPEC(NS::TYPE, serialize ## TYPE, deserialize ## TYPE)
