@@ -22,9 +22,8 @@ TEST(TypeNameTest, Int) {
 }
 
 TEST(TypeNameTest, IsConstexpr) {
-    // typeName() is not constexpr, because of static array to hold the result
-    constexpr auto name = CtTypeInfo<typeof(42u)>::name();
-    ASSERT_STREQ("unsigned int", name.name);
+    constexpr auto name = typeName(42u);
+    ASSERT_STREQ("unsigned int", name);
 }
 
 TEST(TypeNameTest, TypedefIsErased) {

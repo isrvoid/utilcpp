@@ -11,59 +11,71 @@ struct TypeInfo {
 };
 
 template<typename T>
+class TypeName {
+private:
+    struct NamePtr {
+        static constexpr const char* _getPtr() {
+            const char* p = __PRETTY_FUNCTION__;
+            while (*p++ != '=') { }
+            return p + 1;
+        }
+
+        static constexpr const char* p = _getPtr();
+    };
+
+    static constexpr size_t _length() {
+        const char* p = NamePtr::p;
+        size_t length = 0;
+        for (; !(*p == '\0' || *p == ']'); p++) {
+            if (*p == ' ' && p[-1] == '>')
+                continue;
+
+            ++length;
+        }
+        return length;
+    }
+
+public:
+    static constexpr size_t length = _length();
+
+private:
+    template<size_t length>
+    struct Name {
+        char a[length + 1]{};
+    };
+
+    static constexpr Name<length> _name() {
+        Name<length> name;
+        char* dest = name.a;
+        const char* p = NamePtr::p;
+        for (; !(*p == '\0' || *p == ']'); p++) {
+            if (*p == ' ' && p[-1] == '>')
+                continue;
+
+            *dest++ = *p;
+        }
+        return name;
+    }
+
+    static constexpr Name<length> _nameStore = _name();
+
+public:
+    static constexpr const char* name = _nameStore.a;
+};
+
+template<typename T>
 struct CtTypeInfo {
     static constexpr unsigned int hash() noexcept {
         util::digest::CRC32 crc;
-        const char* p = name().name - 1;
-        while (*++p != '\0')
-            crc.put(*p);
+        const char* p = name();
+        while (*p != '\0')
+            crc.put(*p++);
 
         return crc.finish();
     }
 
-private:
-    struct NamePtr {
-        const char* p;
-        size_t length;
-    };
-
-    static constexpr NamePtr namePtr() noexcept {
-        // __PRETTY_FUNCTION__ example:
-        // static constexpr util::CtTypeInfo<T>::NamePtr util::CtTypeInfo<T>::namePtr() [with T = int]
-        constexpr const char* func = __PRETTY_FUNCTION__;
-        constexpr size_t squareBracketIndex = 77;
-        static_assert('[' == func[squareBracketIndex], "Wrong '[' index (function signature changed?)");
-        constexpr const char* start = func + squareBracketIndex + 10; // 10: 1 + "with T = ".length();
-        const char* p = start - 1;
-        size_t closingGtCount = 0;
-        while (*++p != ']')
-            if (*p == '>')
-                ++closingGtCount;
-
-        const size_t length = closingGtCount < 2 ? p - start : p - start + 1 - closingGtCount;
-        return NamePtr{start, length};
-    }
-
-    template<size_t length>
-    struct Name {
-        char name[length + 1]{};
-    };
-
-public:
-    static constexpr auto name() noexcept {
-        constexpr auto ptr = namePtr();
-        Name<ptr.length> name;
-        const char* pSrc = ptr.p - 1;
-        char* pDest = name.name - 1;
-        while (*++pSrc != ']') {
-            if (*pSrc == ' ' && pSrc[-1] == '>')
-                ++pSrc;
-
-            *++pDest = *pSrc;
-        }
-
-        name.name[ptr.length] = '\0';
-        return name;
+    static constexpr const char* name() noexcept {
+        return TypeName<T>::name;
     }
 };
 
@@ -75,18 +87,17 @@ constexpr uint32_t typeHash() noexcept {
 
 template<typename T>
 constexpr uint32_t typeHash(const T&) noexcept {
-    return typeHash<typeof(T)>();
+    return typeHash<T>();
 }
 
 template<typename T>
-const char* typeName() noexcept {
-    static auto name = CtTypeInfo<T>::name();
-    return name.name;
+constexpr const char* typeName() noexcept {
+    return TypeName<T>::name;
 }
 
 template<typename T>
-const char* typeName(const T&) noexcept {
-    return typeName<typeof(T)>();
+constexpr const char* typeName(const T&) noexcept {
+    return TypeName<T>::name;
 }
 
 } // namespace util
