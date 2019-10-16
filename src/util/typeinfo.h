@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include <util/digest/crc.h>
 
 namespace util {
@@ -62,6 +64,15 @@ public:
 };
 
 template<typename T>
+constexpr size_t TypeName<T>::length;
+
+template<typename T>
+constexpr TypeName<T>::Name<TypeName<T>::length> TypeName<T>::_nameStore;
+
+template<typename T>
+constexpr const char* TypeName<T>::name;
+
+template<typename T>
 class TypeHash {
 private:
     static constexpr unsigned int _hash() noexcept {
@@ -76,6 +87,9 @@ private:
 public:
     static constexpr uint32_t hash = _hash();
 };
+
+template<typename T>
+constexpr uint32_t TypeHash<T>::hash;
 
 // convenience functions
 template<typename T>

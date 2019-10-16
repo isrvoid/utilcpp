@@ -12,7 +12,7 @@ using namespace util;
 struct NonPolyBase {};
 struct NonPolyDerived : NonPolyBase {};
 
-struct PolyBase { virtual void foo() {} };
+struct PolyBase { virtual ~PolyBase() = default; virtual void foo() {} };
 struct PolyDerived : PolyBase {};
 
 namespace {
