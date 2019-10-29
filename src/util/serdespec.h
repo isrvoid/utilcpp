@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <util/typeinfo.h>
-#include <util/serde.h>
+#include <util/serdeifc.h>
 #include <util/serdeimpl.h>
 
 #define _SERDE_SPEC(TYPE, SER, DE)  template<> struct Spec<TypeHash<TYPE>::hash> { \
