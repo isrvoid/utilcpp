@@ -13,8 +13,8 @@ struct TypeInfoFactory {
     }
 
     static constexpr TypeInfo ctCreate() noexcept {
-        const auto serde = reinterpret_cast<const void* const*>(&serde::Spec<TypeHash<T>::hash>::value);
-        return TypeInfo{TypeHash<T>::hash, sizeof(T), *serde == nullptr ? nullptr : serde};
+        const auto& serde = serde::Spec<TypeHash<T>::hash>::value;
+        return TypeInfo{TypeHash<T>::hash, sizeof(T), serde.first ? &serde : nullptr};
     }
 };
 

@@ -20,11 +20,11 @@ namespace serde {
 
 template<uint32_t>
 struct Spec {
-    static constexpr void* value{nullptr};
+    static constexpr std::pair<serializeFun, deserializeFun> value{nullptr, nullptr};
 };
 
 template<uint32_t hash>
-constexpr void* Spec<hash>::value;
+constexpr std::pair<serializeFun, deserializeFun> Spec<hash>::value;
 
 SERDE_SPEC(std, vector<uint8_t>)
 
