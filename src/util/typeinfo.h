@@ -6,13 +6,6 @@
 
 namespace util {
 
-// FIXME it's not needed -- rework
-struct TypeInfo {
-    uint32_t hash;
-    uint32_t size;
-    const void* serde;
-};
-
 template<typename T>
 class TypeName {
 private:

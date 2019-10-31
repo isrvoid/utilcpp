@@ -1,6 +1,7 @@
 add_test_sources(
-	blockstore.cpp
-	lengthencoding.cpp
-	typeinfo.cpp
-	serdeimpl.cpp
-	)
+    blockstore.cpp
+    lengthencoding.cpp
+    typeinfo.cpp
+    serdeimpl.cpp
+    serdespec.cpp
+    )
