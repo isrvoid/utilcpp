@@ -70,7 +70,7 @@ template<typename T>
 class TypeHash {
 private:
     static constexpr unsigned int _hash() noexcept {
-        util::digest::CRC32 crc;
+        digest::CRC32 crc;
         const char* p = TypeName<T>::name;
         for (size_t i = 0; i < TypeName<T>::length; i++, p++)
             crc.put(*p);
