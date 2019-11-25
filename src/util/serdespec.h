@@ -5,31 +5,31 @@
 #include <string>
 #include <vector>
 
-#include <util/typeinfo.h>
 #include <util/serdeifc.h>
 #include <util/serdeimpl.h>
 
-#define _SERDE_SPEC(TYPE, SER, DE)  template<> struct _SerdeSpec<TypeHash<TYPE>::hash> { \
-    const SerdePair value{SER, DE}; };
+#define _SERDE_SPEC(TYPE, SER, DE)  struct _SerdeSpec<TYPE> { const SerdePair value{SER, DE}; };
 
-#define SERDE_SPEC(NS, TYPE)  _SERDE_SPEC(NS::TYPE, serialize ## TYPE, deserialize ## TYPE)
+#define SERDE_SPEC(NS, TYPE)  template<> _SERDE_SPEC(NS::TYPE, serialize ## TYPE, deserialize ## TYPE)
+#define SERDE_SPEC_T(NS, TYPE)  template<typename T> _SERDE_SPEC(NS::TYPE, serialize ## TYPE, deserialize ## TYPE)
 
 namespace util {
 namespace serde {
 
 using SerdePair = std::pair<serializeFun, deserializeFun>;
 
-template<uint32_t>
+template<typename T>
 struct _SerdeSpec {
     const SerdePair value{nullptr, nullptr};
 };
 
 template<typename T>
 constexpr SerdePair serdePair() noexcept {
-    return _SerdeSpec<TypeHash<T>::hash>{}.value;
+    return _SerdeSpec<T>{}.value;
 }
 
-SERDE_SPEC(std, vector<uint8_t>)
+SERDE_SPEC(std, string)
+SERDE_SPEC_T(std, vector<T>)
 
 } // namespace serde
 } // namespace util

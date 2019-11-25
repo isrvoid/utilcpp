@@ -3,23 +3,28 @@
 #include <util/serdespec.h>
 
 using namespace std;
-using namespace util;
+using namespace util::serde;
 
 namespace {
 
 TEST(SerdeSpecTest, Int) {
-    constexpr auto serde = util::serde::serdePair<int>();
-    ASSERT_EQ(nullptr, serde.first);
-    ASSERT_EQ(nullptr, serde.second);
+    constexpr SerdePair expect{nullptr, nullptr};
+    ASSERT_EQ(expect, serdePair<int>());
 }
 
 TEST(TypeSpecTest, ByteVector) {
-    const auto expectSerialize = serde::serializevector<uint8_t>;
-    const auto expectDeserialize = serde::deserializevector<uint8_t>;
+    constexpr SerdePair expect{serializevector<uint8_t>, deserializevector<uint8_t>};
+    ASSERT_EQ(expect, serdePair<vector<uint8_t>>());
+}
 
-    constexpr auto serde = serde::serdePair<vector<uint8_t>>();
-    ASSERT_EQ(expectSerialize, serde.first);
-    ASSERT_EQ(expectDeserialize, serde.second);
+TEST(TypeSpecTest, String) {
+    constexpr SerdePair expect{serializestring, deserializestring};
+    ASSERT_EQ(expect, serdePair<string>());
+}
+
+TEST(TypeSpecTest, StringVector) {
+    constexpr SerdePair expect{serializevector<string>, deserializevector<string>};
+    ASSERT_EQ(expect, serdePair<vector<string>>());
 }
 
 } // namespace
