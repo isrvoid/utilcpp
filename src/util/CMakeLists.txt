@@ -2,7 +2,7 @@ add_sources(
     blockstore.cpp
     lengthencoding.cpp
     loader.cpp
-    serdeimpl.cpp
+    serdeimplbasic.cpp
     )
 
 add_subdirectory(digest)

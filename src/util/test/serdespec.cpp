@@ -1,11 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <util/serdespecbasic.h>
 #include <util/serdespec.h>
 
 using namespace std;
 using namespace util::serde;
 
 namespace {
+
+TEST(SerdeSpecTest, IsTrivial) {
+    ASSERT_TRUE(isTrivialSerde<int>());
+    ASSERT_FALSE(isTrivialSerde<string>());
+}
 
 TEST(SerdeSpecTest, Int) {
     constexpr SerdePair expect{nullptr, nullptr};

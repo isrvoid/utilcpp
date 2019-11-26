@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <util/serdespecbasic.h>
 #include <util/serdeimpl.h>
 
 using namespace std;
@@ -100,6 +101,49 @@ TEST_F(SerdeStringTest, DeserBufferTooShort) {
     string val{"foo"};
     auto dest = serializestring(&val, buf.data(), buf.data() + buf.capacity());
     ASSERT_EQ(nullptr, deserializestring(buf.data(), static_cast<uint8_t*>(dest) - 1, &ptr));
+}
+
+class NonTrivialSerdeVectorTest : public testing::Test {
+protected:
+    vector<uint8_t> buf = vector<uint8_t>(128);
+    shared_ptr<vector<string>> ptr;
+};
+
+TEST_F(NonTrivialSerdeVectorTest, Init) {
+    vector<string> init;
+    auto dest = serializevector<int>(&init, buf.data(), buf.data() + buf.capacity());
+    auto const src = deserializevector<int>(buf.data(), buf.data() + buf.capacity(), &ptr);
+    ASSERT_NE(nullptr, dest);
+    ASSERT_EQ(dest, src);
+    ASSERT_EQ(init, *ptr);
+}
+
+TEST_F(NonTrivialSerdeVectorTest, SingleElement) {
+    vector<string> v{"foo"};
+    auto dest = serializevector<int>(&v, buf.data(), buf.data() + buf.capacity());
+    auto const src = deserializevector<int>(buf.data(), buf.data() + buf.capacity(), &ptr);
+    ASSERT_EQ(dest, src);
+    ASSERT_EQ(v, *ptr);
+}
+
+TEST_F(NonTrivialSerdeVectorTest, MultipleElements) {
+    vector<string> v{"foo", "bar", "The quick brown fox"};
+    auto dest = serializevector<string>(&v, buf.data(), buf.data() + buf.capacity());
+    auto const src = deserializevector<string>(buf.data(), buf.data() + buf.capacity(), &ptr);
+    ASSERT_EQ(dest, src);
+    ASSERT_EQ(v, *ptr);
+}
+
+TEST_F(NonTrivialSerdeVectorTest, SerBufferTooShort) {
+    vector<string> v{"The quick", "brown fox"};
+    auto dest = serializevector<string>(&v, buf.data(), buf.data() + buf.capacity());
+    ASSERT_EQ(nullptr, serializevector<string>(&v, buf.data(), static_cast<uint8_t*>(dest) - 1));
+}
+
+TEST_F(NonTrivialSerdeVectorTest, DeserBufferTooShort) {
+    vector<string> v{"jumps over", "the lazy", "dog"};
+    auto dest = serializevector<string>(&v, buf.data(), buf.data() + buf.capacity());
+    ASSERT_EQ(nullptr, deserializevector<string>(buf.data(), static_cast<uint8_t*>(dest) - 1, &ptr));
 }
 
 } // namespace
