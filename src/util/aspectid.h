@@ -1,37 +1,34 @@
 #pragma once
 
+#include <cstdint>
 #include <cassert>
-#include <type_traits>
 
 #include <util/digest/crc.h>
-#include <util/typeinfo.h>
 
-#define ASPECT_ID_BASE(_ENUM, _ASPECT) ::util::_AspectIdBase<_ENUM>::get( \
-    _ENUM##Name[static_cast<uint32_t>(_ENUM::_ASPECT)])
+template<typename T>
+struct _AspectIdLut;
 
 namespace util {
 
-template<typename Aspect, typename = std::enable_if_t<std::is_enum<Aspect>::value>>
-struct _AspectIdBase {
-    static constexpr uint32_t get(const char* name) {
-        digest::CRC32 crc{TypeHash<Aspect>::hash};
-        crc.put(':');
-        crc.put(':');
-        while (*name != '\0')
-            crc.put(*name++);
+template<typename T>
+constexpr uint32_t aspectId(T enumerator) noexcept {
+    assert(enumerator != T::_end);
+    return ::_AspectIdLut<T>::id(enumerator);
+}
 
-        return crc.finish();
-    }
-};
-
-constexpr uint32_t aspectIdMaybeAddIndex(uint32_t id, bool shouldAdd, size_t index) {
+constexpr uint32_t addIndex(uint32_t id, size_t index) noexcept {
+    // TODO relax assert; put() 1 to 4 bytes depending on index
     assert(index < 1 << 8);
-    if (!shouldAdd)
-        return id;
-
     digest::CRC32 crc{id};
     crc.put(static_cast<uint8_t>(index));
     return crc.finish();
+}
+
+constexpr uint32_t maybeAddIndex(uint32_t id, size_t index, bool shouldAdd) noexcept {
+    if (!shouldAdd)
+        return id;
+
+    return addIndex(id, index);
 }
 
 } // namespace util
