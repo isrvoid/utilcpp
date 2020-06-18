@@ -32,11 +32,11 @@ const void* LengthEncoding::read(const void* _src, size_t& lengthOut) noexcept {
 }
 
 void* LengthEncoding::write(size_t _length, void* _dest) noexcept {
-    uint64_t length = _length;
-    assert(length <= lengthMax);
+    assert(_length <= lengthMax);
     auto dest = static_cast<uint8_t*>(_dest);
-    const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
-    const unsigned int byteCount = 1 << (byteCountMask >> 6);
+    const unsigned int byteCountLog = (_length > shortLengthMax) << 1 | (_length > byteLengthMax);
+    const unsigned int byteCount = 1 << byteCountLog;
+    uint64_t length = _length;
     uint8_t* p = reinterpret_cast<uint8_t*>(&length);
     switch (byteCount) {
         case 8: dest[7] = *p++;
@@ -48,20 +48,19 @@ void* LengthEncoding::write(size_t _length, void* _dest) noexcept {
                 [[fallthrough]];
         case 2: dest[1] = *p++;
                 [[fallthrough]];
-        case 1: dest[0] = static_cast<uint8_t>(*p | byteCountMask);
+        case 1: dest[0] = static_cast<uint8_t>(*p | byteCountLog << 6);
     }
 
     return dest + byteCount;
 }
 
 void* LengthEncoding::writeBack(size_t _length, void* _dest) noexcept {
-    uint64_t length = _length;
-    assert(length <= lengthMax);
+    assert(_length <= lengthMax);
     auto dest = static_cast<uint8_t*>(_dest);
-    const unsigned int byteCountMask = (length > shortLengthMax) << 7 | (length > byteLengthMax) << 6;
-    const unsigned int byteCount = 1 << (byteCountMask >> 6);
+    const unsigned int byteCountLog = (_length > shortLengthMax) << 1 | (_length > byteLengthMax);
+    uint64_t length = _length;
     uint8_t* p = reinterpret_cast<uint8_t*>(&length);
-    switch (byteCount) {
+    switch (1 << byteCountLog) {
         case 8: *--dest = *p++;
                 *--dest = *p++;
                 *--dest = *p++;
@@ -71,7 +70,7 @@ void* LengthEncoding::writeBack(size_t _length, void* _dest) noexcept {
                 [[fallthrough]];
         case 2: *--dest = *p++;
                 [[fallthrough]];
-        case 1: *--dest = static_cast<uint8_t>(*p | byteCountMask);
+        case 1: *--dest = static_cast<uint8_t>(*p | byteCountLog << 6);
     }
     return dest;
 }
